@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 25 20% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 20% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 20% 20%;
+
+    /* Warm wood brown - primary brand color */
+    --primary: 25 45% 25%;
+    --primary-foreground: 0 0% 98%;
+
+    /* Light wood tone for secondary */
+    --secondary: 30 25% 92%;
+    --secondary-foreground: 25 45% 25%;
+
+    --muted: 30 20% 95%;
+    --muted-foreground: 25 15% 45%;
+
+    /* Amber accent for craftsmanship highlights */
+    --accent: 35 85% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Professional navy blue for trust */
+    --trust: 215 70% 35%;
+    --trust-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 25 45% 25%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(25 45% 25%), hsl(35 50% 35%));
+    --gradient-hero: linear-gradient(to bottom, hsl(25 45% 25% / 0.9), hsl(25 45% 25% / 0.7));
+    
+    /* Shadows */
+    --shadow-elegant: 0 10px 40px -10px hsl(25 45% 25% / 0.2);
+    --shadow-soft: 0 4px 20px -4px hsl(25 45% 25% / 0.1);
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 25 20% 12%;
+    --foreground: 30 10% 95%;
+
+    --card: 25 20% 15%;
+    --card-foreground: 30 10% 95%;
+
+    --popover: 25 20% 15%;
+    --popover-foreground: 30 10% 95%;
+
+    --primary: 35 65% 55%;
+    --primary-foreground: 25 20% 12%;
+
+    --secondary: 25 15% 20%;
+    --secondary-foreground: 30 10% 95%;
+
+    --muted: 25 15% 18%;
+    --muted-foreground: 30 10% 65%;
+
+    --accent: 35 85% 55%;
+    --accent-foreground: 25 20% 12%;
+
+    --trust: 215 60% 50%;
+    --trust-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 25 15% 25%;
+    --input: 25 15% 25%;
+    --ring: 35 65% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
