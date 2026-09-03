@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, ArrowRight } from "lucide-react";
 import heroImage from "@/assets/hero-doors.jpg";
@@ -32,9 +33,15 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-12">
-            <Button size="lg" className="text-lg h-14 px-8 shadow-elegant hover:scale-105 transition-smooth">
-              <Phone className="w-5 h-5 mr-2" />
-              Get Quote
+            <Button
+              size="lg"
+              className="text-lg h-14 px-8 shadow-elegant hover:scale-105 transition-smooth"
+              asChild
+            >
+              <Link to="/get-quote">
+                <Phone className="w-5 h-5 mr-2" />
+                Get Quote
+              </Link>
             </Button>
             <Button 
               size="lg" 

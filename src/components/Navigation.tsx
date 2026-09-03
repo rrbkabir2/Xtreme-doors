@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,9 +35,11 @@ const Navigation = () => {
                 {item.label}
               </a>
             ))}
-            <Button size="sm" className="ml-4">
-              <Phone className="w-4 h-4 mr-2" />
-              Get Quote
+            <Button size="sm" className="ml-4" asChild>
+              <Link to="/get-quote">
+                <Phone className="w-4 h-4 mr-2" />
+                Get Quote
+              </Link>
             </Button>
           </div>
 
@@ -64,9 +67,11 @@ const Navigation = () => {
               </a>
             ))}
             <div className="px-4 pt-2">
-              <Button size="sm" className="w-full">
-                <Phone className="w-4 h-4 mr-2" />
-                Get Quote
+              <Button size="sm" className="w-full" asChild>
+                <Link to="/get-quote" onClick={() => setIsOpen(false)}>
+                  <Phone className="w-4 h-4 mr-2" />
+                  Get Quote
+                </Link>
               </Button>
             </div>
           </div>
