@@ -40,9 +40,12 @@ const Hero = () => {
               size="lg" 
               variant="secondary" 
               className="text-lg h-14 px-8 bg-background/90 hover:bg-background backdrop-blur-sm shadow-elegant hover:scale-105 transition-smooth"
+              asChild
             >
-              View Products
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <a href="#products">
+                View Products
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </a>
             </Button>
           </div>
 
