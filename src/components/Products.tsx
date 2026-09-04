@@ -1,5 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Carousel,
   CarouselContent,
@@ -133,6 +142,10 @@ const pages = Array.from(
 );
 
 const Products = () => {
+  const [selectedProduct, setSelectedProduct] = useState<
+    (typeof products)[number] | null
+  >(null);
+
   return (
     <section id="products" className="py-24 bg-background">
       <div className="container mx-auto px-4">
@@ -147,9 +160,9 @@ const Products = () => {
             </p>
           </div>
 
-          {/* Pages — each page is a 2x2 grid of full-detail cards.
-              User navigates between pages with the Previous/Next
-              buttons; nothing moves automatically on scroll. */}
+          {/* Pages — each page is a 2x2 grid of cards. User navigates
+              between pages with the Previous/Next buttons; nothing
+              moves automatically on scroll. */}
           <Carousel opts={{ align: "start" }} className="relative">
             <CarouselContent>
               {pages.map((pageProducts, pageIndex) => (
@@ -173,35 +186,18 @@ const Products = () => {
 
                         <CardHeader>
                           <CardTitle className="text-xl text-card-foreground">{product.title}</CardTitle>
-                          <CardDescription className="text-sm">{product.description}</CardDescription>
+                          <CardDescription className="text-sm line-clamp-3">{product.description}</CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-4">
-                          {/* Features */}
-                          <div>
-                            <h4 className="font-semibold text-card-foreground mb-2 text-sm">Key Features</h4>
-                            <div className="flex flex-wrap gap-1.5">
-                              {product.features.map((feature, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
-                                  {feature}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Specifications */}
-                          <div>
-                            <h4 className="font-semibold text-card-foreground mb-2 text-sm">Specifications</h4>
-                            <div className="space-y-1">
-                              {product.specifications.map((spec, idx) => (
-                                <div key={idx} className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">{spec.label}:</span>
-                                  <span className="font-medium text-card-foreground">{spec.value}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </CardContent>
+                        <div className="px-6 pb-6">
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => setSelectedProduct(product)}
+                          >
+                            View Details
+                          </Button>
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -224,6 +220,60 @@ const Products = () => {
           </Carousel>
         </div>
       </div>
+
+      {/* Details popup — features + specifications */}
+      <Dialog
+        open={selectedProduct !== null}
+        onOpenChange={(open) => !open && setSelectedProduct(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl text-foreground">
+                  {selectedProduct.title}
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  {selectedProduct.description}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="relative h-64 overflow-hidden rounded-lg bg-secondary/30 mt-2">
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="space-y-6 mt-4">
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Key Features</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProduct.features.map((feature, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Specifications</h4>
+                  <div className="space-y-2">
+                    {selectedProduct.specifications.map((spec, idx) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{spec.label}:</span>
+                        <span className="font-medium text-foreground">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
