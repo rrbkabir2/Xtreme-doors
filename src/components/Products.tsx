@@ -1,8 +1,13 @@
-import { useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 import { Layers, ShieldCheck, Ruler, Wand2 } from "lucide-react";
-import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 import flushDoor from "@/assets/flush-door.jpg";
 import mouldedDoor from "@/assets/moulded-door.jpg";
 import doorFrame from "@/assets/door-frame.jpg";
@@ -119,16 +124,8 @@ const pages = Array.from(
 );
 
 const Products = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  // Pins the section and drives horizontal page-by-page motion from
-  // vertical scroll on desktop/tablet (lg+). Falls back to normal
-  // vertical stacking below that.
-  useHorizontalScroll(sectionRef, trackRef);
-
   return (
-    <section id="products" ref={sectionRef} className="py-24 bg-background overflow-hidden">
+    <section id="products" className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
@@ -142,65 +139,74 @@ const Products = () => {
           </div>
 
           {/* Pages — each page is a 2x2 grid of full-detail cards.
-              Track scrolls one page at a time on lg+; stacks normally below. */}
-          <div ref={trackRef} className="flex flex-col lg:flex-row">
-            {pages.map((pageProducts, pageIndex) => (
-              <div
-                key={pageIndex}
-                className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-rows-2 gap-8 lg:px-1"
-              >
-                {pageProducts.map((product, index) => (
-                  <Card
-                    key={index}
-                    className="overflow-hidden hover:shadow-elegant transition-smooth border-border"
-                  >
-                    <div className="relative h-56 overflow-hidden bg-secondary/30">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-smooth duration-500"
-                      />
-                      <div className="absolute top-4 right-4 w-12 h-12 bg-accent/90 rounded-lg flex items-center justify-center shadow-elegant">
-                        <product.icon className="w-6 h-6 text-accent-foreground" />
-                      </div>
-                    </div>
-
-                    <CardHeader>
-                      <CardTitle className="text-xl text-card-foreground">{product.title}</CardTitle>
-                      <CardDescription className="text-sm">{product.description}</CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-4">
-                      {/* Features */}
-                      <div>
-                        <h4 className="font-semibold text-card-foreground mb-2 text-sm">Key Features</h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {product.features.map((feature, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
+              User navigates between pages with the Previous/Next
+              buttons; nothing moves automatically on scroll. */}
+          <Carousel opts={{ align: "start" }} className="relative">
+            <CarouselContent>
+              {pages.map((pageProducts, pageIndex) => (
+                <CarouselItem key={pageIndex}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    {pageProducts.map((product, index) => (
+                      <Card
+                        key={index}
+                        className="overflow-hidden hover:shadow-elegant transition-smooth border-border"
+                      >
+                        <div className="relative h-56 overflow-hidden bg-secondary/30">
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-full object-cover hover:scale-105 transition-smooth duration-500"
+                          />
+                          <div className="absolute top-4 right-4 w-12 h-12 bg-accent/90 rounded-lg flex items-center justify-center shadow-elegant">
+                            <product.icon className="w-6 h-6 text-accent-foreground" />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Specifications */}
-                      <div>
-                        <h4 className="font-semibold text-card-foreground mb-2 text-sm">Specifications</h4>
-                        <div className="space-y-1">
-                          {product.specifications.map((spec, idx) => (
-                            <div key={idx} className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">{spec.label}:</span>
-                              <span className="font-medium text-card-foreground">{spec.value}</span>
+                        <CardHeader>
+                          <CardTitle className="text-xl text-card-foreground">{product.title}</CardTitle>
+                          <CardDescription className="text-sm">{product.description}</CardDescription>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4">
+                          {/* Features */}
+                          <div>
+                            <h4 className="font-semibold text-card-foreground mb-2 text-sm">Key Features</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {product.features.map((feature, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {feature}
+                                </Badge>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ))}
-          </div>
+                          </div>
+
+                          {/* Specifications */}
+                          <div>
+                            <h4 className="font-semibold text-card-foreground mb-2 text-sm">Specifications</h4>
+                            <div className="space-y-1">
+                              {product.specifications.map((spec, idx) => (
+                                <div key={idx} className="flex justify-between text-xs">
+                                  <span className="text-muted-foreground">{spec.label}:</span>
+                                  <span className="font-medium text-card-foreground">{spec.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+
+            {pages.length > 1 && (
+              <>
+                <CarouselPrevious className="-left-4 lg:-left-12" />
+                <CarouselNext className="-right-4 lg:-right-12" />
+              </>
+            )}
+          </Carousel>
         </div>
       </div>
     </section>
