@@ -58,9 +58,9 @@ const Hero = () => {
 
           {/* Quick Contact Info */}
           <div className="flex flex-col sm:flex-row gap-6 text-primary-foreground/80">
-            <a href="tel:+919175997197" className="flex items-center gap-2 hover:text-accent transition-smooth hover:scale-105">
+            <a href="tel:+919404040031" className="flex items-center gap-2 hover:text-accent transition-smooth hover:scale-105">
               <Phone className="w-5 h-5" />
-              <span>+91 91759 97197 / 87961 30786</span>
+              <span>+91 94040 40031 / 87961 30786</span>
             </a>
             <a href="mailto:xtremeedoors@gmail.com" className="flex items-center gap-2 hover:text-accent transition-smooth hover:scale-105">
               <Mail className="w-5 h-5" />

@@ -255,11 +255,11 @@ const GetQuote = () => {
                     Prefer to talk directly?
                   </h3>
                   <a
-                    href="tel:+919175997197"
+                    href="tel:+919404040031"
                     className="flex items-start gap-3 text-muted-foreground hover:text-primary transition-smooth"
                   >
                     <Phone className="w-5 h-5 mt-0.5 shrink-0" />
-                    <span>+91 91759 97197 / 87961 30786</span>
+                    <span>+91 94040 40031 / 87961 30786</span>
                   </a>
                   <a
                     href="mailto:xtremeedoors@gmail.com"
