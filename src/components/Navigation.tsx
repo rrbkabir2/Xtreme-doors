@@ -63,10 +63,10 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="#" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="text-2xl font-bold text-primary">Xtreme Doors</div>
             <span className="hidden sm:block text-xs text-muted-foreground">A unit of Hannure Doors</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
