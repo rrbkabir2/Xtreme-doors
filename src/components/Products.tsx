@@ -101,15 +101,24 @@ const products = [
       { label: "Finish", value: "High-quality laminate with curved edges" },
     ],
   },
-  // Placeholder 5th product — added only to demo/confirm that a second
-  // scroll "page" correctly appears once there are more than 4 products.
-  // Replace title/description/image/features/specs with a real product
-  // whenever the owner is ready to add one, or remove this entry.
+  // Placeholder products — added only to demo/confirm that a second
+  // carousel page appears and the Previous/Next buttons work once
+  // there are more than 4 products. Replace title/description/image/
+  // features/specs with real products whenever the owner is ready,
+  // or remove these two entries.
   {
-    title: "[Reference] New Product Slot",
-    description: "Placeholder card demonstrating that a second scroll page appears automatically once a 5th product is added. Replace with real product details.",
+    title: "[Reference] New Product Slot 1",
+    description: "Placeholder card demonstrating that a second carousel page appears automatically once a 5th product is added. Replace with real product details.",
     image: flushDoor,
     icon: Layers,
+    features: ["Replace with real features"],
+    specifications: [{ label: "Note", value: "Placeholder for testing" }],
+  },
+  {
+    title: "[Reference] New Product Slot 2",
+    description: "Second placeholder card, so page 2 shows a full 2-card row for a realistic test.",
+    image: mouldedDoor,
+    icon: ShieldCheck,
     features: ["Replace with real features"],
     specifications: [{ label: "Note", value: "Placeholder for testing" }],
   },
@@ -202,8 +211,14 @@ const Products = () => {
 
             {pages.length > 1 && (
               <>
-                <CarouselPrevious className="-left-4 lg:-left-12" />
-                <CarouselNext className="-right-4 lg:-right-12" />
+                <CarouselPrevious
+                  variant="default"
+                  className="left-2 lg:-left-6 h-11 w-11 shadow-elegant border-none"
+                />
+                <CarouselNext
+                  variant="default"
+                  className="right-2 lg:-right-6 h-11 w-11 shadow-elegant border-none"
+                />
               </>
             )}
           </Carousel>
