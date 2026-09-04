@@ -1,18 +1,62 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
+  const location = useLocation();
 
   const navItems = [
-    { label: "About", href: "#about" },
-    { label: "Products", href: "#products" },
-    { label: "Specifications", href: "#specifications" },
-    { label: "Why Choose Us", href: "#why-us" },
-    { label: "Contact", href: "#contact" },
+    { label: "About", href: "#about", id: "about" },
+    { label: "Products", href: "#products", id: "products" },
+    { label: "Specifications", href: "#specifications", id: "specifications" },
+    { label: "Why Choose Us", href: "#why-us", id: "why-us" },
+    { label: "Contact", href: "#contact", id: "contact" },
   ];
+
+  // Scroll-spy: highlight the nav item for whichever section is currently
+  // in view. Only runs on the home page, since these section IDs only
+  // exist there (e.g. not on /get-quote).
+  useEffect(() => {
+    if (location.pathname !== "/") {
+      setActiveSection("");
+      return;
+    }
+
+    const sectionIds = navItems.map((item) => item.id);
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Among sections currently intersecting the viewport band,
+        // pick the one closest to the top.
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visible.length > 0) {
+          setActiveSection(visible[0].target.id);
+        }
+      },
+      {
+        // Treat a section as "active" once it's within this horizontal
+        // band of the viewport (accounts for the fixed navbar height).
+        rootMargin: "-100px 0px -60% 0px",
+        threshold: 0,
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-soft">
@@ -30,7 +74,11 @@ const Navigation = () => {
               <a
                 key={item.label}
                 href={item.href}
-                className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-smooth rounded-lg hover:bg-secondary"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-smooth ${
+                  activeSection === item.id
+                    ? "text-primary bg-secondary"
+                    : "text-foreground hover:text-primary hover:bg-secondary"
+                }`}
               >
                 {item.label}
               </a>
@@ -60,7 +108,11 @@ const Navigation = () => {
               <a
                 key={item.label}
                 href={item.href}
-                className="block px-4 py-2 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary rounded-lg transition-smooth"
+                className={`block px-4 py-2 text-sm font-medium rounded-lg transition-smooth ${
+                  activeSection === item.id
+                    ? "text-primary bg-secondary"
+                    : "text-foreground hover:text-primary hover:bg-secondary"
+                }`}
                 onClick={() => setIsOpen(false)}
               >
                 {item.label}
