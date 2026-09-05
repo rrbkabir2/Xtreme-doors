@@ -160,6 +160,8 @@ const Products = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const heightWrapperRef = useRef<HTMLDivElement>(null);
+  const prevButtonRef = useRef<HTMLButtonElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
 
   // A horizontal carousel's container height defaults to the tallest
   // slide, since all slides sit side-by-side. With an uneven last page
@@ -169,28 +171,45 @@ const Products = () => {
   // into that empty space. This measures the ACTIVE page's real
   // height and resizes the wrapper to match it, so the layout always
   // hugs whatever is actually visible.
+  //
+  // It also precisely centers the Prev/Next buttons on the LAST
+  // product card of the active page, measured directly via
+  // getBoundingClientRect rather than a guessed CSS percentage — this
+  // stays correct regardless of how many rows/columns a page has at
+  // any screen size (mobile 1-column, tablet/desktop 2-column, a
+  // full 2x2 page, or a shorter last page).
   useLayoutEffect(() => {
     if (!api) return;
 
-    const updateHeight = () => {
+    const updateLayout = () => {
       const activeIndex = api.selectedScrollSnap();
       const activePage = pageRefs.current[activeIndex];
       const wrapper = heightWrapperRef.current;
-      if (activePage && wrapper) {
-        wrapper.style.height = `${activePage.offsetHeight}px`;
+      if (!activePage || !wrapper) return;
+
+      wrapper.style.height = `${activePage.offsetHeight}px`;
+
+      const lastCard = activePage.lastElementChild as HTMLElement | null;
+      if (lastCard) {
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const cardRect = lastCard.getBoundingClientRect();
+        const centerY = cardRect.top - wrapperRect.top + cardRect.height / 2;
+
+        if (prevButtonRef.current) prevButtonRef.current.style.top = `${centerY}px`;
+        if (nextButtonRef.current) nextButtonRef.current.style.top = `${centerY}px`;
       }
     };
 
-    updateHeight();
+    updateLayout();
 
-    api.on("select", updateHeight);
-    api.on("reInit", updateHeight);
-    window.addEventListener("resize", updateHeight);
+    api.on("select", updateLayout);
+    api.on("reInit", updateLayout);
+    window.addEventListener("resize", updateLayout);
 
     return () => {
-      api.off("select", updateHeight);
-      api.off("reInit", updateHeight);
-      window.removeEventListener("resize", updateHeight);
+      api.off("select", updateLayout);
+      api.off("reInit", updateLayout);
+      window.removeEventListener("resize", updateLayout);
     };
   }, [api]);
 
@@ -320,14 +339,16 @@ const Products = () => {
 
             {canScrollPrev && (
               <CarouselPrevious
+                ref={prevButtonRef}
                 variant="default"
-                className="top-3/4 left-2 lg:-left-6 h-11 w-11 shadow-elegant border-none"
+                className="left-2 h-11 w-11 shadow-elegant border-none"
               />
             )}
             {canScrollNext && (
               <CarouselNext
+                ref={nextButtonRef}
                 variant="default"
-                className="top-3/4 right-2 lg:-right-6 h-11 w-11 shadow-elegant border-none"
+                className="right-2 h-11 w-11 shadow-elegant border-none"
               />
             )}
           </Carousel>
