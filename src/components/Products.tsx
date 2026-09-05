@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { Layers, ShieldCheck, Ruler, Wand2 } from "lucide-react";
 import flushDoor from "@/assets/flush-door.jpg";
@@ -141,13 +142,40 @@ const pages = Array.from(
   (_, i) => products.slice(i * PRODUCTS_PER_PAGE, i * PRODUCTS_PER_PAGE + PRODUCTS_PER_PAGE)
 );
 
+// Height of the fixed navbar (h-16 = 64px), plus a small buffer, so the
+// section heading isn't tucked underneath it after an auto-scroll.
+const NAV_OFFSET = 80;
+
 const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<
     (typeof products)[number] | null
   >(null);
+  const [api, setApi] = useState<CarouselApi>();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Whenever the carousel page changes (Previous/Next clicked), scroll
+  // the Products section fully into view at the top of the viewport
+  // instead of leaving the user scrolled to wherever they were —
+  // otherwise the new row's cards can appear half cut-off above/below.
+  useEffect(() => {
+    if (!api) return;
+
+    const scrollSectionToTop = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const top =
+        section.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+      window.scrollTo({ top, behavior: "smooth" });
+    };
+
+    api.on("select", scrollSectionToTop);
+    return () => {
+      api.off("select", scrollSectionToTop);
+    };
+  }, [api]);
 
   return (
-    <section id="products" className="py-24 bg-background">
+    <section id="products" ref={sectionRef} className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
@@ -163,7 +191,7 @@ const Products = () => {
           {/* Pages — each page is a 2x2 grid of cards. User navigates
               between pages with the Previous/Next buttons; nothing
               moves automatically on scroll. */}
-          <Carousel opts={{ align: "start" }} className="relative">
+          <Carousel opts={{ align: "start" }} setApi={setApi} className="relative">
             <CarouselContent>
               {pages.map((pageProducts, pageIndex) => (
                 <CarouselItem key={pageIndex}>
@@ -209,11 +237,11 @@ const Products = () => {
               <>
                 <CarouselPrevious
                   variant="default"
-                  className="left-2 lg:-left-6 h-11 w-11 shadow-elegant border-none"
+                  className="top-3/4 left-2 lg:-left-6 h-11 w-11 shadow-elegant border-none"
                 />
                 <CarouselNext
                   variant="default"
-                  className="right-2 lg:-right-6 h-11 w-11 shadow-elegant border-none"
+                  className="top-3/4 right-2 lg:-right-6 h-11 w-11 shadow-elegant border-none"
                 />
               </>
             )}
