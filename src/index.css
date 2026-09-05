@@ -96,7 +96,15 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
+    /* Safety net for elements that intentionally sit slightly outside
+       their container (e.g. the Products carousel's Prev/Next buttons)
+       so they don't cause a page-wide horizontal scrollbar. */
+    overflow-x: hidden;
   }
 }
