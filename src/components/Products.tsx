@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -158,6 +158,41 @@ const Products = () => {
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const heightWrapperRef = useRef<HTMLDivElement>(null);
+
+  // A horizontal carousel's container height defaults to the tallest
+  // slide, since all slides sit side-by-side. With an uneven last page
+  // (6 products = 4 + 2), that meant the shorter 2nd page still
+  // reserved the taller 1st page's full height underneath it —
+  // showing a big empty gap and pushing the Prev/Next buttons down
+  // into that empty space. This measures the ACTIVE page's real
+  // height and resizes the wrapper to match it, so the layout always
+  // hugs whatever is actually visible.
+  useLayoutEffect(() => {
+    if (!api) return;
+
+    const updateHeight = () => {
+      const activeIndex = api.selectedScrollSnap();
+      const activePage = pageRefs.current[activeIndex];
+      const wrapper = heightWrapperRef.current;
+      if (activePage && wrapper) {
+        wrapper.style.height = `${activePage.offsetHeight}px`;
+      }
+    };
+
+    updateHeight();
+
+    api.on("select", updateHeight);
+    api.on("reInit", updateHeight);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      api.off("select", updateHeight);
+      api.off("reInit", updateHeight);
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, [api]);
 
   // Whenever the carousel page changes (Previous/Next clicked), scroll
   // the Products section fully into view at the top of the viewport
@@ -227,12 +262,25 @@ const Products = () => {
 
           {/* Pages — each page is a 2x2 grid of cards. User navigates
               between pages with the Previous/Next buttons; nothing
-              moves automatically on scroll. */}
-          <Carousel opts={{ align: "start" }} setApi={setApi} className="relative">
+              moves automatically on scroll. Height-locked to the
+              active page only (see updateHeight above) so a shorter
+              last page doesn't leave empty reserved space below it —
+              and so the Prev/Next buttons (positioned as a % of this
+              same element's height) land on the visible content,
+              not the empty space. */}
+          <Carousel
+            ref={heightWrapperRef}
+            opts={{ align: "start" }}
+            setApi={setApi}
+            className="relative overflow-hidden transition-[height] duration-300 ease-in-out"
+          >
             <CarouselContent>
               {pages.map((pageProducts, pageIndex) => (
                 <CarouselItem key={pageIndex}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                  <div
+                    ref={(el) => (pageRefs.current[pageIndex] = el)}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-8"
+                  >
                     {pageProducts.map((product, index) => (
                       <Card
                         key={index}
