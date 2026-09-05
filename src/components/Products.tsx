@@ -17,7 +17,7 @@ import {
   CarouselNext,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Layers, ShieldCheck, Ruler, Wand2, Download } from "lucide-react";
+import { Layers, ShieldCheck, Ruler, Wand2, Download, Expand } from "lucide-react";
 import flushDoor from "@/assets/flush-door.jpg";
 import mouldedDoor from "@/assets/moulded-door.jpg";
 import doorFrame from "@/assets/door-frame.jpg";
@@ -154,6 +154,7 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<
     (typeof products)[number] | null
   >(null);
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
@@ -376,18 +377,31 @@ const Products = () => {
                 <img
                   src={selectedProduct.image}
                   alt={selectedProduct.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-zoom-in"
+                  onClick={() => setIsPhotoOpen(true)}
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="absolute bottom-3 right-3 shadow-elegant"
-                  onClick={handleDownloadImage}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Image
-                </Button>
+                <div className="absolute bottom-3 right-3 flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="shadow-elegant"
+                    onClick={() => setIsPhotoOpen(true)}
+                  >
+                    <Expand className="w-4 h-4 mr-2" />
+                    View Full Photo
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="shadow-elegant"
+                    onClick={handleDownloadImage}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-6 mt-4">
@@ -415,6 +429,20 @@ const Products = () => {
                 </div>
               </div>
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Full-photo lightbox — separate Dialog (sibling, not nested)
+          showing the complete, uncropped image */}
+      <Dialog open={isPhotoOpen} onOpenChange={setIsPhotoOpen}>
+        <DialogContent className="max-w-4xl p-2 bg-transparent border-none shadow-none">
+          {selectedProduct && (
+            <img
+              src={selectedProduct.image}
+              alt={selectedProduct.title}
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
           )}
         </DialogContent>
       </Dialog>
