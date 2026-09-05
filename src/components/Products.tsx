@@ -418,11 +418,14 @@ const Products = () => {
 
                 <div>
                   <h4 className="font-semibold text-foreground mb-3">Specifications</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {selectedProduct.specifications.map((spec, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{spec.label}:</span>
-                        <span className="font-medium text-foreground">{spec.value}</span>
+                      <div
+                        key={idx}
+                        className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0"
+                      >
+                        <span className="text-muted-foreground">{spec.label}</span>
+                        <span className="font-medium text-foreground sm:text-right">{spec.value}</span>
                       </div>
                     ))}
                   </div>
