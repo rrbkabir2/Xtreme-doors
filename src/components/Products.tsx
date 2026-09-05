@@ -17,7 +17,7 @@ import {
   CarouselNext,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Layers, ShieldCheck, Ruler, Wand2 } from "lucide-react";
+import { Layers, ShieldCheck, Ruler, Wand2, Download } from "lucide-react";
 import flushDoor from "@/assets/flush-door.jpg";
 import mouldedDoor from "@/assets/moulded-door.jpg";
 import doorFrame from "@/assets/door-frame.jpg";
@@ -192,6 +192,21 @@ const Products = () => {
     };
   }, [api]);
 
+  const handleDownloadImage = () => {
+    if (!selectedProduct) return;
+    const filename = `${selectedProduct.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")}.jpg`;
+
+    const link = document.createElement("a");
+    link.href = selectedProduct.image;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <section id="products" ref={sectionRef} className="py-24 bg-background">
       <div className="container mx-auto px-4">
@@ -290,6 +305,16 @@ const Products = () => {
                   alt={selectedProduct.title}
                   className="w-full h-full object-cover"
                 />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="absolute bottom-3 right-3 shadow-elegant"
+                  onClick={handleDownloadImage}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Image
+                </Button>
               </div>
 
               <div className="space-y-6 mt-4">
