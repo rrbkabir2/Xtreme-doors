@@ -151,12 +151,18 @@ const Products = () => {
     (typeof products)[number] | null
   >(null);
   const [api, setApi] = useState<CarouselApi>();
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   // Whenever the carousel page changes (Previous/Next clicked), scroll
   // the Products section fully into view at the top of the viewport
   // instead of leaving the user scrolled to wherever they were —
   // otherwise the new row's cards can appear half cut-off above/below.
+  //
+  // Also track canScrollPrev/canScrollNext so we can hide a button
+  // entirely when it has nowhere to go, instead of showing a dimmed
+  // disabled button that does nothing.
   useEffect(() => {
     if (!api) return;
 
@@ -168,9 +174,21 @@ const Products = () => {
       window.scrollTo({ top, behavior: "smooth" });
     };
 
+    const updateScrollability = () => {
+      setCanScrollPrev(api.canScrollPrev());
+      setCanScrollNext(api.canScrollNext());
+    };
+
+    updateScrollability(); // set correct initial state (e.g. first page)
+
     api.on("select", scrollSectionToTop);
+    api.on("select", updateScrollability);
+    api.on("reInit", updateScrollability);
+
     return () => {
       api.off("select", scrollSectionToTop);
+      api.off("select", updateScrollability);
+      api.off("reInit", updateScrollability);
     };
   }, [api]);
 
@@ -233,17 +251,17 @@ const Products = () => {
               ))}
             </CarouselContent>
 
-            {pages.length > 1 && (
-              <>
-                <CarouselPrevious
-                  variant="default"
-                  className="top-3/4 left-2 lg:-left-6 h-11 w-11 shadow-elegant border-none"
-                />
-                <CarouselNext
-                  variant="default"
-                  className="top-3/4 right-2 lg:-right-6 h-11 w-11 shadow-elegant border-none"
-                />
-              </>
+            {canScrollPrev && (
+              <CarouselPrevious
+                variant="default"
+                className="top-3/4 left-2 lg:-left-6 h-11 w-11 shadow-elegant border-none"
+              />
+            )}
+            {canScrollNext && (
+              <CarouselNext
+                variant="default"
+                className="top-3/4 right-2 lg:-right-6 h-11 w-11 shadow-elegant border-none"
+              />
             )}
           </Carousel>
         </div>
