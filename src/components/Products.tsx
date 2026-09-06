@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,143 +18,72 @@ import {
   CarouselNext,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Layers, ShieldCheck, Ruler, Wand2, Download, Expand } from "lucide-react";
-import flushDoor from "@/assets/flush-door.jpg";
-import mouldedDoor from "@/assets/moulded-door.jpg";
-import doorFrame from "@/assets/door-frame.jpg";
-import postFormingDoor from "@/assets/post-forming-door.jpg";
+import { Layers, ShieldCheck, Ruler, Wand2, DoorOpen, Download, Expand, type LucideIcon } from "lucide-react";
+import { getProductImageUrl } from "@/lib/productImage";
 
-const products = [
-  {
-    title: "Laminated Flush Doors",
-    description: "Premium quality doors with solid core blockboard and HPL decorative laminates on both sides, engineered for superior durability and aesthetic appeal",
-    image: flushDoor,
-    icon: Layers,
-    features: [
-      "Plain & Grooved variants",
-      "Phenol formaldehyde resin bonded",
-      "Hot pressed for durability",
-      "Premium Pinewood & Hardwood",
-      "HPL both sides",
-      "Termite resistant",
-      "Moisture resistant",
-      "Warp-free construction",
-    ],
-    specifications: [
-      { label: "Thickness", value: "30-50mm" },
-      { label: "Standard Sizes", value: "84x27\", 84x32\", 84x35\"" },
-      { label: "Special Size", value: "120\"x48\" (10x4 feet)" },
-    ],
-  },
-  {
-    title: "Moulded Panel Doors",
-    description: "Elegant pre-primed doors featuring international design standards with superior durability, ready for painting in your choice of color",
-    image: mouldedDoor,
-    icon: ShieldCheck,
-    features: [
-      "Pre-primed white finish",
-      "Anti-warping & cracking",
-      "Kiln seasoned timber",
-      "Marine grade quality",
-      "Economical & eco-friendly",
-      "International design",
-      "Paint-ready surface",
-      "Dimensional stability",
-      "Easy installation",
-    ],
-    specifications: [
-      { label: "Thickness", value: "30mm" },
-      { label: "Standard Sizes", value: "84x27\", 84x32\", 84x36\", 84x39\"" },
-      { label: "Finish", value: "Pre-primed white" },
-    ],
-  },
-  {
-    title: "Door Frames",
-    description: "Complete range of premium door frames including conventional, finger jointed, post-form, and pre-laminated options with railings and architrave",
-    image: doorFrame,
-    icon: Ruler,
-    features: [
-      "Easy installation",
-      "Space-efficient storage",
-      "Multiple variants available",
-      "Includes railings & architrave",
-      "Carton packed for protection",
-      "Precision engineered joints",
-      "Weather resistant",
-      "Long-lasting finish",
-    ],
-    specifications: [
-      { label: "Thickness", value: "30-52mm" },
-      { label: "Length", value: "1100-2300mm" },
-      { label: "Width", value: "300-1100mm" },
-      { label: "Types", value: "Conventional, Finger Jointed, Post-Form, Pre-laminated" },
-    ],
-  },
-  {
-    title: "Postform Doors & Frames",
-    description: "Seamless Finish. Precision Formed. Built for Modern Spaces. Precision-manufactured doors where decorative laminate is bonded and postformed to create a clean, continuous, refined finish — for residential, commercial and hospitality applications, combining a contemporary appearance with consistent manufacturing quality and extensive design flexibility.",
-    image: postFormingDoor,
-    icon: Wand2,
-    features: [
-      "Seamless appearance",
-      "Precision manufacturing",
-      "Design flexibility",
-      "Custom sizing",
-      "Matching frame system",
-      "Multiple thickness options",
-    ],
-    specifications: [
-      { label: "Construction", value: "Precision-engineered laminated door construction" },
-      { label: "Door Size", value: "Up to 1200mm (W) x 2400mm (H)" },
-      { label: "Door Thickness", value: "30 / 35 / 40 / 45 / 55mm, as per requirement" },
-      { label: "Frame Width", value: "Available as required, up to 250mm" },
-      { label: "Frame Configuration", value: "Customised to suit door size and site requirements" },
-      { label: "Finish", value: "Wide range of laminate colours, woodgrains, textures & designs" },
-      { label: "Edge Finish", value: "Precision postformed edges for a seamless appearance" },
-      { label: "Hardware Compatibility", value: "Standard and premium door hardware" },
-      { label: "Ideal For", value: "Residential, Commercial, Hospitality, Offices, Institutional Projects" },
-      { label: "The Postform Advantage", value: "Precision \u2022 Seamless Finish \u2022 Customisation \u2022 Design Freedom \u2022 Consistent Quality" },
-    ],
-  },
-  // Placeholder products — added only to demo/confirm that a second
-  // carousel page appears and the Previous/Next buttons work once
-  // there are more than 4 products. Replace title/description/image/
-  // features/specs with real products whenever the owner is ready,
-  // or remove these two entries.
-  {
-    title: "[Reference] New Product Slot 1",
-    description: "Placeholder card demonstrating that a second carousel page appears automatically once a 5th product is added. Replace with real product details.",
-    image: flushDoor,
-    icon: Layers,
-    features: ["Replace with real features"],
-    specifications: [{ label: "Note", value: "Placeholder for testing" }],
-  },
-  {
-    title: "[Reference] New Product Slot 2",
-    description: "Second placeholder card, so page 2 shows a full 2-card row for a realistic test.",
-    image: mouldedDoor,
-    icon: ShieldCheck,
-    features: ["Replace with real features"],
-    specifications: [{ label: "Note", value: "Placeholder for testing" }],
-  },
-];
+// Products now live in the database, managed from /admin/products —
+// this is fetched from our own /api/products endpoint (which reads
+// only rows marked "visible on public site").
+interface Spec {
+  label: string;
+  value: string;
+}
+interface ApiProduct {
+  id: string;
+  title: string;
+  description: string;
+  features: string[];
+  specifications: Spec[];
+  image_path: string | null;
+  icon_name: string;
+  sort_order: number;
+}
+interface DisplayProduct {
+  title: string;
+  description: string;
+  image: string;
+  icon: LucideIcon;
+  features: string[];
+  specifications: Spec[];
+}
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Layers,
+  ShieldCheck,
+  Ruler,
+  Wand2,
+  DoorOpen,
+};
+
+async function fetchProducts(): Promise<DisplayProduct[]> {
+  const res = await fetch("/api/products");
+  if (!res.ok) throw new Error("Failed to load products");
+  const data = await res.json();
+  return (data.products as ApiProduct[]).map((p) => ({
+    title: p.title,
+    description: p.description,
+    image: getProductImageUrl(p.image_path),
+    icon: ICON_MAP[p.icon_name] || Layers,
+    features: p.features,
+    specifications: p.specifications,
+  }));
+}
 
 // Group products into pages of 4 (2x2 grid per page). The horizontal
 // scroll moves one full page at a time, not one card at a time.
 const PRODUCTS_PER_PAGE = 4;
-const pages = Array.from(
-  { length: Math.ceil(products.length / PRODUCTS_PER_PAGE) },
-  (_, i) => products.slice(i * PRODUCTS_PER_PAGE, i * PRODUCTS_PER_PAGE + PRODUCTS_PER_PAGE)
-);
 
 // Height of the fixed navbar (h-16 = 64px), plus a small buffer, so the
 // section heading isn't tucked underneath it after an auto-scroll.
 const NAV_OFFSET = 80;
 
 const Products = () => {
-  const [selectedProduct, setSelectedProduct] = useState<
-    (typeof products)[number] | null
-  >(null);
+  const { data: products } = useQuery({ queryKey: ["public-products"], queryFn: fetchProducts });
+  const pages = Array.from(
+    { length: Math.ceil((products?.length || 0) / PRODUCTS_PER_PAGE) },
+    (_, i) => (products || []).slice(i * PRODUCTS_PER_PAGE, i * PRODUCTS_PER_PAGE + PRODUCTS_PER_PAGE)
+  );
+  const [selectedProduct, setSelectedProduct] = useState<DisplayProduct | null>(null);
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -209,33 +139,10 @@ const Products = () => {
     api.on("reInit", updateLayout);
     window.addEventListener("resize", updateLayout);
 
-    // Fonts finishing loading AFTER this first measurement can reflow
-    // card text (different line-wrapping/height than the fallback font
-    // shown before the real font loads) — silently invalidating the
-    // locked height and button position without any of the events
-    // above firing. This was handled in an earlier version of this
-    // component and got dropped when the layout logic changed; this
-    // restores it. Re-run once real fonts are actually ready.
-    if ("fonts" in document) {
-      document.fonts.ready.then(updateLayout);
-    }
-
-    // Defensive: also re-run after any image still loading finishes,
-    // in case a future card design doesn't use a fixed-height image
-    // box like the current one does.
-    const images = Array.from(
-      heightWrapperRef.current?.querySelectorAll("img") ?? []
-    );
-    const pendingImages = images.filter((img) => !img.complete);
-    pendingImages.forEach((img) => {
-      img.addEventListener("load", updateLayout, { once: true });
-    });
-
     return () => {
       api.off("select", updateLayout);
       api.off("reInit", updateLayout);
       window.removeEventListener("resize", updateLayout);
-      pendingImages.forEach((img) => img.removeEventListener("load", updateLayout));
     };
   }, [api]);
 

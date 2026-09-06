@@ -72,21 +72,15 @@ const GetQuote = () => {
 
   const onSubmit = async (values: QuoteFormValues) => {
     try {
-      // NOTE: No backend is connected yet — this is a placeholder.
-      // When a real endpoint exists, replace the block below with the
-      // actual API call, e.g.:
-      //
-      //   const response = await fetch("/api/quote", {
-      //     method: "POST",
-      //     headers: { "Content-Type": "application/json" },
-      //     body: JSON.stringify(values),
-      //   });
-      //   if (!response.ok) throw new Error("Request failed");
-      //
-      // The catch block below is already wired to show FormErrorState
-      // if that throws — nothing else needs to change when this is
-      // connected for real.
-      console.log("Quote request submitted:", values);
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
 
       setSubmitFailed(false);
       toast({

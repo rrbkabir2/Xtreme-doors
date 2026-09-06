@@ -8,6 +8,7 @@ import ErrorBoundary from "./components/errors/ErrorBoundary";
 import Index from "./pages/Index";
 import GetQuote from "./pages/GetQuote";
 import NotFound from "./pages/NotFound";
+import AdminApp from "./pages/admin/AdminApp";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/get-quote" element={<GetQuote />} />
+            {/* Not linked from public nav anywhere — reachable only by
+                typing the URL directly, and gated by AdminApp's own
+                login check either way. */}
+            <Route path="/admin/*" element={<AdminApp />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
