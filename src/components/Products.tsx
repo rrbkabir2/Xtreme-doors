@@ -209,10 +209,33 @@ const Products = () => {
     api.on("reInit", updateLayout);
     window.addEventListener("resize", updateLayout);
 
+    // Fonts finishing loading AFTER this first measurement can reflow
+    // card text (different line-wrapping/height than the fallback font
+    // shown before the real font loads) — silently invalidating the
+    // locked height and button position without any of the events
+    // above firing. This was handled in an earlier version of this
+    // component and got dropped when the layout logic changed; this
+    // restores it. Re-run once real fonts are actually ready.
+    if ("fonts" in document) {
+      document.fonts.ready.then(updateLayout);
+    }
+
+    // Defensive: also re-run after any image still loading finishes,
+    // in case a future card design doesn't use a fixed-height image
+    // box like the current one does.
+    const images = Array.from(
+      heightWrapperRef.current?.querySelectorAll("img") ?? []
+    );
+    const pendingImages = images.filter((img) => !img.complete);
+    pendingImages.forEach((img) => {
+      img.addEventListener("load", updateLayout, { once: true });
+    });
+
     return () => {
       api.off("select", updateLayout);
       api.off("reInit", updateLayout);
       window.removeEventListener("resize", updateLayout);
+      pendingImages.forEach((img) => img.removeEventListener("load", updateLayout));
     };
   }, [api]);
 
