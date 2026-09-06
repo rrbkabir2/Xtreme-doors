@@ -135,6 +135,14 @@ export default {
             transform: "translateX(0)"
           }
         },
+        "door-creak": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "50%": { transform: "rotate(-4deg)" },
+        },
+        "eye-blink": {
+          "0%, 90%, 100%": { transform: "scaleY(1)" },
+          "95%": { transform: "scaleY(0.1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -144,6 +152,8 @@ export default {
         "scale-in": "scale-in 0.5s ease-out",
         "slide-in-left": "slide-in-left 0.6s ease-out",
         "slide-in-right": "slide-in-right 0.6s ease-out",
+        "door-creak": "door-creak 3s ease-in-out infinite",
+        "eye-blink": "eye-blink 4s ease-in-out infinite",
       },
     },
   },
