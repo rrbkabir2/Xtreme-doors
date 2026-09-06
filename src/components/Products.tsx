@@ -158,6 +158,7 @@ const Products = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const [isPositioned, setIsPositioned] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const heightWrapperRef = useRef<HTMLDivElement>(null);
@@ -198,6 +199,7 @@ const Products = () => {
 
         if (prevButtonRef.current) prevButtonRef.current.style.top = `${centerY}px`;
         if (nextButtonRef.current) nextButtonRef.current.style.top = `${centerY}px`;
+        setIsPositioned(true);
       }
     };
 
@@ -342,14 +344,18 @@ const Products = () => {
               <CarouselPrevious
                 ref={prevButtonRef}
                 variant="default"
-                className="left-2 h-11 w-11 shadow-elegant border-none"
+                className={`left-2 h-11 w-11 shadow-elegant border-none transition-opacity duration-150 ${
+                  isPositioned ? "opacity-100" : "opacity-0"
+                }`}
               />
             )}
             {canScrollNext && (
               <CarouselNext
                 ref={nextButtonRef}
                 variant="default"
-                className="right-2 h-11 w-11 shadow-elegant border-none"
+                className={`right-2 h-11 w-11 shadow-elegant border-none transition-opacity duration-150 ${
+                  isPositioned ? "opacity-100" : "opacity-0"
+                }`}
               />
             )}
           </Carousel>
