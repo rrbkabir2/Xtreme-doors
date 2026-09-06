@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
+import FormErrorState from "@/components/errors/FormErrorState";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, MapPin } from "lucide-react";
 
@@ -66,18 +68,36 @@ const GetQuote = () => {
     },
   });
 
-  const onSubmit = (values: QuoteFormValues) => {
-    // NOTE: No backend is connected yet. This currently just confirms
-    // receipt to the user. Wire this up to an email/CRM/API endpoint
-    // when ready.
-    console.log("Quote request submitted:", values);
+  const [submitFailed, setSubmitFailed] = useState(false);
 
-    toast({
-      title: "Quote request received",
-      description: "Thanks! We'll get back to you shortly with a quote.",
-    });
+  const onSubmit = async (values: QuoteFormValues) => {
+    try {
+      // NOTE: No backend is connected yet — this is a placeholder.
+      // When a real endpoint exists, replace the block below with the
+      // actual API call, e.g.:
+      //
+      //   const response = await fetch("/api/quote", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify(values),
+      //   });
+      //   if (!response.ok) throw new Error("Request failed");
+      //
+      // The catch block below is already wired to show FormErrorState
+      // if that throws — nothing else needs to change when this is
+      // connected for real.
+      console.log("Quote request submitted:", values);
 
-    form.reset();
+      setSubmitFailed(false);
+      toast({
+        title: "Quote request received",
+        description: "Thanks! We'll get back to you shortly with a quote.",
+      });
+      form.reset();
+    } catch (error) {
+      console.error("Quote submission failed:", error);
+      setSubmitFailed(true);
+    }
   };
 
   return (
@@ -103,6 +123,9 @@ const GetQuote = () => {
             {/* Form */}
             <Card className="lg:col-span-2 shadow-elegant">
               <CardContent className="pt-6">
+                {submitFailed ? (
+                  <FormErrorState onRetry={() => setSubmitFailed(false)} />
+                ) : (
                 <Form {...form}>
                   <form
                     onSubmit={form.handleSubmit(onSubmit)}
@@ -244,6 +267,7 @@ const GetQuote = () => {
                     </Button>
                   </form>
                 </Form>
+                )}
               </CardContent>
             </Card>
 

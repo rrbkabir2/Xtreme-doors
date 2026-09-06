@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import ErrorBoundary from "./components/errors/ErrorBoundary";
 import Index from "./pages/Index";
 import GetQuote from "./pages/GetQuote";
 import NotFound from "./pages/NotFound";
@@ -15,17 +16,19 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/get-quote" element={<GetQuote />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/get-quote" element={<GetQuote />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
-export default App;
+export default App; 
