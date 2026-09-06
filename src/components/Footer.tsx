@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin } from "lucide-react";
 
 const Footer = () => {
@@ -6,6 +7,7 @@ const Footer = () => {
     { label: "Products", href: "#products" },
     { label: "Specifications", href: "#specifications" },
     { label: "Contact", href: "#contact" },
+    { label: "Get Quote", href: "/get-quote" },
   ];
 
   const products = [
@@ -36,12 +38,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link, index) => (
                 <li key={index}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href.startsWith("#") ? `/${link.href}` : link.href}
                     className="text-primary-foreground/70 hover:text-accent transition-smooth text-sm"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
