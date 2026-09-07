@@ -66,11 +66,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Signed in successfully against Supabase Auth — but that alone
     // doesn't make them an admin. Confirm membership explicitly.
-    const { data: adminRow } = await admin
+    const { data: adminRow, error: adminCheckError } = await admin
       .from("admin_users")
       .select("user_id")
       .eq("user_id", data.user.id)
       .maybeSingle();
+
+    // Distinguish "genuinely not an admin" from "couldn't even check" —
+    // e.g. a bad SUPABASE_SECRET_KEY would previously masquerade as
+    // "not authorized," which is misleading and hides the real problem.
+    if (adminCheckError) {
+      throw adminCheckError;
+    }
 
     if (!adminRow) {
       await authClient.auth.signOut();
