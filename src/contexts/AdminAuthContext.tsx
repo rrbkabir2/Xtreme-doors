@@ -67,7 +67,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/admin/session", { method: "DELETE", credentials: "include" });
     } finally {
       setAuthenticated(false);
       setEmail(null);
@@ -120,7 +120,7 @@ export async function adminFetch(input: string, init: RequestInit = {}): Promise
   const first = await fetch(input, { ...init, credentials: "include" });
   if (first.status !== 401) return first;
 
-  const refreshed = await fetch("/api/admin/refresh", { method: "POST", credentials: "include" });
+  const refreshed = await fetch("/api/admin/session", { method: "POST", credentials: "include" });
   if (!refreshed.ok) return first;
 
   return fetch(input, { ...init, credentials: "include" });
