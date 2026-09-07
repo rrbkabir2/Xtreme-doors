@@ -113,7 +113,7 @@ export function useAdminAuth() {
 
 /**
  * Wrapper for admin API calls: automatically retries once via
- * /api/admin/refresh if the access token has expired (401), so the
+ *   automatically retries once via a session refresh if the access token has expired (401), so the
  * admin doesn't get logged out just because an hour passed.
  */
 export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
