@@ -34,8 +34,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
     const service = getServiceClient();
-    const { data: users } = await service.auth.admin.listUsers();
-    const matchedUser = users?.users.find((u) => u.email?.toLowerCase() === email);
+    const { data: usersData } = await service.auth.admin.listUsers();
+    const allUsers = usersData?.users ?? [];
+    const matchedUser = allUsers.find((u) => u.email?.toLowerCase() === email);
     if (!matchedUser) return genericResponse();
 
     const { data: adminRow } = await service
