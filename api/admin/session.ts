@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { applySecurityHeaders, sendServerError } from "../_lib/security";
-import { readCookie, ACCESS_COOKIE } from "../_lib/cookies";
-import { getUserClient, getServiceClient } from "../_lib/supabaseServer";
+import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
+import { readCookie, ACCESS_COOKIE } from "../_lib/cookies.js";
+import { getUserClient, getServiceClient } from "../_lib/supabaseServer.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   applySecurityHeaders(req, res);

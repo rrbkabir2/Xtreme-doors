@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { applySecurityHeaders, sendServerError } from "../_lib/security";
-import { readCookie, ACCESS_COOKIE } from "../_lib/cookies";
-import { getUserClient, getServiceClient } from "../_lib/supabaseServer";
+import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
+import { readCookie, ACCESS_COOKIE } from "../_lib/cookies.js";
+import { getUserClient, getServiceClient } from "../_lib/supabaseServer.js";
 
 // Vercel's default body parser has a size ceiling that already helps,
 // but we double-check the decoded size ourselves below too.

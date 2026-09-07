@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
-import { applySecurityHeaders, sendServerError } from "../_lib/security";
-import { readCookie, ACCESS_COOKIE } from "../_lib/cookies";
-import { getUserClient } from "../_lib/supabaseServer";
+import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
+import { readCookie, ACCESS_COOKIE } from "../_lib/cookies.js";
+import { getUserClient } from "../_lib/supabaseServer.js";
 
 const specSchema = z.object({
   label: z.string().trim().min(1).max(100),

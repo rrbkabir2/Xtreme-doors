@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getServiceClient } from "./_lib/supabaseServer";
-import { applySecurityHeaders, sendServerError } from "./_lib/security";
+import { getServiceClient } from "./_lib/supabaseServer.js";
+import { applySecurityHeaders, sendServerError } from "./_lib/security.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   applySecurityHeaders(req, res);

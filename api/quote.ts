@@ -1,9 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
-import { getServiceClient } from "./_lib/supabaseServer";
-import { applySecurityHeaders, sendServerError } from "./_lib/security";
-import { checkRateLimit, getClientIp } from "./_lib/rateLimit";
-
+import { getServiceClient } from "./_lib/supabaseServer.js";
+import { applySecurityHeaders, sendServerError } from "./_lib/security.js";
+import { checkRateLimit, getClientIp } from "./_lib/rateLimit.js";
 // Mirrors the client-side schema in src/pages/GetQuote.tsx — but this
 // is the copy that actually matters, since client-side validation can
 // always be bypassed (e.g. by calling this endpoint directly).

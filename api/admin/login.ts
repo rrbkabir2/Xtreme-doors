@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
-import { getAuthClient, getServiceClient } from "../_lib/supabaseServer";
-import { applySecurityHeaders, sendServerError } from "../_lib/security";
-import { setAuthCookies } from "../_lib/cookies";
-import { checkRateLimit, getClientIp } from "../_lib/rateLimit";
+import { getAuthClient, getServiceClient } from "../_lib/supabaseServer.js";
+import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
+import { setAuthCookies } from "../_lib/cookies.js";
+import { checkRateLimit, getClientIp } from "../_lib/rateLimit.js";
 
 const loginSchema = z.object({
   email: z.string().trim().email().max(255),

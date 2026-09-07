@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { applySecurityHeaders, sendServerError } from "../_lib/security";
-import { clearAuthCookies } from "../_lib/cookies";
+import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
+import { clearAuthCookies } from "../_lib/cookies.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   applySecurityHeaders(req, res);
