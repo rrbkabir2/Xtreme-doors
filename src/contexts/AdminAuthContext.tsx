@@ -12,6 +12,7 @@ interface AdminAuthState {
   authenticated: boolean;
   email: string | null;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  loginWithOAuthTokens: (accessToken: string, refreshToken: string, expiresIn?: number) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -73,8 +74,32 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Called after Google's redirect completes and Supabase's client SDK
+  // has a temporary in-memory session. We hand those tokens to our own
+  // backend, which independently re-verifies them and checks admin
+  // status before granting real access — see api/admin/oauth-session.ts.
+  const loginWithOAuthTokens = async (accessToken: string, refreshToken: string, expiresIn?: number) => {
+    try {
+      const res = await fetch("/api/admin/oauth-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ accessToken, refreshToken, expiresIn }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAuthenticated(true);
+        setEmail(data.email || null);
+        return { ok: true };
+      }
+      return { ok: false, error: data.error || "Google sign-in failed." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
   return (
-    <AdminAuthContext.Provider value={{ loading, authenticated, email, login, logout }}>
+    <AdminAuthContext.Provider value={{ loading, authenticated, email, login, loginWithOAuthTokens, logout }}>
       {children}
     </AdminAuthContext.Provider>
   );

@@ -2,12 +2,14 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useAdminTheme } from "./AdminThemeContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, MessageSquareText, Package, Moon, Sun, LogOut, DoorClosed } from "lucide-react";
+import { LayoutDashboard, MessageSquareText, Package, Moon, Sun, LogOut, DoorClosed, Users, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/quotes", label: "Quotes", icon: MessageSquareText, end: false },
   { to: "/admin/products", label: "Products", icon: Package, end: false },
+  { to: "/admin/admins", label: "Admins", icon: Users, end: false },
+  { to: "/admin/settings", label: "Settings", icon: Settings, end: false },
 ];
 
 const AdminLayout = () => {

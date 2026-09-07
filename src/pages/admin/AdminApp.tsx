@@ -3,19 +3,24 @@ import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import { AdminThemeProvider } from "./AdminThemeContext";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminLogin from "./AdminLogin";
+import AdminForgotPassword from "./AdminForgotPassword";
+import AdminResetPassword from "./AdminResetPassword";
+import AdminOAuthCallback from "./AdminOAuthCallback";
 import AdminLayout from "./AdminLayout";
 import AdminDashboard from "./AdminDashboard";
 import AdminQuotes from "./AdminQuotes";
 import AdminProducts from "./AdminProducts";
+import AdminAdmins from "./AdminAdmins";
+import AdminSettings from "./AdminSettings";
 
-// Mounted only under /admin/* — this is why the session-check API call
-// in AdminAuthProvider never fires on public marketing pages, and why
-// the admin dark/light toggle never affects the public site's look.
 const AdminApp = () => (
   <AdminThemeProvider>
     <AdminAuthProvider>
       <Routes>
         <Route path="login" element={<AdminLogin />} />
+        <Route path="forgot-password" element={<AdminForgotPassword />} />
+        <Route path="reset-password" element={<AdminResetPassword />} />
+        <Route path="oauth-callback" element={<AdminOAuthCallback />} />
         <Route
           element={
             <ProtectedRoute>
@@ -26,6 +31,8 @@ const AdminApp = () => (
           <Route index element={<AdminDashboard />} />
           <Route path="quotes" element={<AdminQuotes />} />
           <Route path="products" element={<AdminProducts />} />
+          <Route path="admins" element={<AdminAdmins />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
     </AdminAuthProvider>
