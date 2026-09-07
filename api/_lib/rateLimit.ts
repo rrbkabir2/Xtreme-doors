@@ -1,5 +1,5 @@
 import type { VercelRequest } from "@vercel/node";
-import { getServiceClient } from "./supabaseServer";
+import { getServiceClient } from "./supabaseServer.js";
 
 /**
  * Simple fixed-window rate limiter backed by the `rate_limits` table.
