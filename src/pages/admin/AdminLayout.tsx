@@ -1,8 +1,8 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Link, Outlet } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useAdminTheme } from "./AdminThemeContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, MessageSquareText, Package, Moon, Sun, LogOut, DoorClosed, Users, Settings } from "lucide-react";
+import { LayoutDashboard, MessageSquareText, Package, Moon, Sun, LogOut, Users, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -20,11 +20,11 @@ const AdminLayout = () => {
     <div className="min-h-screen bg-background text-foreground flex">
       {/* Sidebar */}
       <aside className="w-64 shrink-0 border-r border-border bg-card flex flex-col">
-        <div className="h-16 flex items-center gap-2 px-5 border-b border-border">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-            <DoorClosed className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-semibold">Xtreme Doors</span>
+        <div className="h-16 flex items-center px-5 border-b border-border">
+          <Link to="/" className="flex items-baseline gap-2 hover:opacity-80 transition-smooth" title="Back to Xtreme Doors homepage">
+            <span className="text-lg font-bold text-primary leading-none">Xtreme Doors</span>
+            <span className="hidden lg:inline text-[10px] text-muted-foreground leading-none whitespace-nowrap">A unit of Hannure Doors</span>
+          </Link>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
