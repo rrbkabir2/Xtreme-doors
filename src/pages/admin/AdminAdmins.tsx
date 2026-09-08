@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PasswordInput from "./PasswordInput";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminUser {
@@ -77,12 +77,24 @@ const AdminAdmins = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Admins</h1>
-          <p className="text-muted-foreground text-sm">Manage who has access to this panel</p>
+          <p className="text-muted-foreground text-sm">
+            {isLoading ? "Loading…" : `${data?.admins.length ?? 0} admin${data?.admins.length === 1 ? "" : "s"} have access to this panel`}
+          </p>
         </div>
         <Button onClick={() => setDialogOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" /> Add Admin
         </Button>
       </div>
+
+      <Card>
+        <CardContent className="pt-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Total Admins</p>
+            <p className="text-2xl font-bold">{isLoading ? "…" : data?.admins.length ?? 0}</p>
+          </div>
+          <Users className="w-8 h-8 text-muted-foreground" />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">
@@ -92,7 +104,7 @@ const AdminAdmins = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Gmail</TableHead>
                   <TableHead>Added</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
