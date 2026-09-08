@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { supabaseBrowserAuthClient } from "@/lib/supabaseAuthClient";
+import { getSupabaseAuthClient } from "@/lib/supabaseAuthClient";
 import UnauthorizedNotice from "./UnauthorizedNotice";
 import { Loader2 } from "lucide-react";
 
@@ -12,18 +12,15 @@ const AdminOAuthCallback = () => {
 
   useEffect(() => {
     const run = async () => {
-      if (!supabaseBrowserAuthClient) {
+      const client = getSupabaseAuthClient();
+      if (!client) {
         setStatus("error");
         setError("Google sign-in isn't configured.");
         return;
       }
 
-      const { data, error: sessionError } = await supabaseBrowserAuthClient.auth.getSession();
+      const { data, error: sessionError } = await client.auth.getSession();
 
-      // Immediately scrub the access token out of the URL bar and collapse
-      // it out of browser history — replaceState (not pushState) means
-      // this doesn't add a new entry, so the back button can't land on a
-      // page that once had a raw token sitting in its address bar.
       window.history.replaceState(null, "", window.location.pathname);
 
       if (sessionError || !data.session) {
@@ -35,7 +32,7 @@ const AdminOAuthCallback = () => {
       const { access_token, refresh_token, expires_in } = data.session;
 
       const result = await loginWithOAuthTokens(access_token, refresh_token, expires_in);
-      await supabaseBrowserAuthClient.auth.signOut();
+      await client.auth.signOut();
 
       if (result.ok) {
         setStatus("done");

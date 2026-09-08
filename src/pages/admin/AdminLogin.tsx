@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { supabaseBrowserAuthClient } from "@/lib/supabaseAuthClient";
+import { getSupabaseAuthClient } from "@/lib/supabaseAuthClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,13 +33,14 @@ const AdminLogin = () => {
   };
 
   const handleGoogleLogin = async () => {
-    if (!supabaseBrowserAuthClient) {
+    const client = getSupabaseAuthClient();
+    if (!client) {
       setError("Google sign-in isn't configured yet.");
       return;
     }
     setError(null);
     setGoogleLoading(true);
-    const { error: oauthError } = await supabaseBrowserAuthClient.auth.signInWithOAuth({
+    const { error: oauthError } = await client.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/admin/oauth-callback` },
     });
@@ -47,17 +48,15 @@ const AdminLogin = () => {
       setError("Could not start Google sign-in.");
       setGoogleLoading(false);
     }
-    // On success the browser navigates away to Google, so nothing more
-    // happens here — AdminOAuthCallback picks up when it returns.
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/30 px-4">
       <Card className="w-full max-w-sm shadow-elegant">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-12 h-12 rounded-lg bg-primary flex items-center justify-center">
+          <Link to="/" className="mx-auto w-12 h-12 rounded-lg bg-primary flex items-center justify-center hover:opacity-90 transition-smooth" aria-label="Back to Xtreme Doors homepage">
             <DoorClosed className="w-6 h-6 text-primary-foreground" />
-          </div>
+          </Link>
           <CardTitle className="text-2xl">Admin Login</CardTitle>
           <CardDescription>Xtreme Doors admin panel</CardDescription>
         </CardHeader>

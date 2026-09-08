@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 interface UnauthorizedNoticeProps {
@@ -38,6 +38,9 @@ const UnauthorizedNotice = ({ message }: UnauthorizedNoticeProps) => {
         <Button className="w-full" onClick={() => navigate("/admin/login", { replace: true })}>
           Back to login
         </Button>
+        <Link to="/" className="block text-sm text-muted-foreground hover:text-foreground">
+          Go to homepage
+        </Link>
       </div>
     </div>
   );
