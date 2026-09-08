@@ -19,14 +19,17 @@ interface AdminUser {
 
 async function fetchAdmins(): Promise<{ admins: AdminUser[]; currentUserId: string }> {
   const res = await adminFetch("/api/admin/admins");
-  if (!res.ok) throw new Error("Failed to load admins");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Failed to load admins (status ${res.status})`);
+  }
   return res.json();
 }
 
 const AdminAdmins = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data, isLoading } = useQuery({ queryKey: ["admin-admins"], queryFn: fetchAdmins });
+  const { data, isLoading, isError, error: queryError } = useQuery({ queryKey: ["admin-admins"], queryFn: fetchAdmins });
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -78,7 +81,11 @@ const AdminAdmins = () => {
         <div>
           <h1 className="text-2xl font-bold">Admins</h1>
           <p className="text-muted-foreground text-sm">
-            {isLoading ? "Loading…" : `${data?.admins.length ?? 0} admin${data?.admins.length === 1 ? "" : "s"} have access to this panel`}
+            {isLoading
+              ? "Loading…"
+              : isError
+              ? "Could not load admins — see the error below."
+              : `${data?.admins.length ?? 0} admin${data?.admins.length === 1 ? "" : "s"} have access to this panel`}
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)} className="gap-2">
@@ -90,7 +97,7 @@ const AdminAdmins = () => {
         <CardContent className="pt-6 flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Total Admins</p>
-            <p className="text-2xl font-bold">{isLoading ? "…" : data?.admins.length ?? 0}</p>
+            <p className="text-2xl font-bold">{isLoading ? "…" : isError ? "—" : data?.admins.length ?? 0}</p>
           </div>
           <Users className="w-8 h-8 text-muted-foreground" />
         </CardContent>
@@ -100,6 +107,8 @@ const AdminAdmins = () => {
         <CardContent className="pt-6">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : isError ? (
+            <p className="text-sm text-destructive">{(queryError as Error)?.message || "Could not load admins."}</p>
           ) : (
             <Table>
               <TableHeader>
