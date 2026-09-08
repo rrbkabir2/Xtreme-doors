@@ -1,4 +1,4 @@
-import { NavLink, Link, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useAdminTheme } from "./AdminThemeContext";
 import { Button } from "@/components/ui/button";
@@ -15,16 +15,22 @@ const navItems = [
 const AdminLayout = () => {
   const { email, logout } = useAdminAuth();
   const { theme, toggleTheme } = useAdminTheme();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/", { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       {/* Sidebar */}
       <aside className="w-64 shrink-0 border-r border-border bg-card flex flex-col">
         <div className="h-16 flex items-center px-5 border-b border-border">
-          <Link to="/" className="flex items-baseline gap-2 hover:opacity-80 transition-smooth" title="Back to Xtreme Doors homepage">
+          <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-primary leading-none">Xtreme Doors</span>
             <span className="hidden lg:inline text-[10px] text-muted-foreground leading-none whitespace-nowrap">A unit of Hannure Doors</span>
-          </Link>
+          </div>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -49,7 +55,7 @@ const AdminLayout = () => {
 
         <div className="p-3 border-t border-border space-y-2">
           <p className="px-3 text-xs text-muted-foreground truncate">{email}</p>
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={logout}>
+          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleLogout}>
             <LogOut className="w-4 h-4" />
             Log out
           </Button>
