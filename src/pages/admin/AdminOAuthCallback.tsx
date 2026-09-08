@@ -20,6 +20,12 @@ const AdminOAuthCallback = () => {
 
       const { data, error: sessionError } = await supabaseBrowserAuthClient.auth.getSession();
 
+      // Immediately scrub the access token out of the URL bar and collapse
+      // it out of browser history — replaceState (not pushState) means
+      // this doesn't add a new entry, so the back button can't land on a
+      // page that once had a raw token sitting in its address bar.
+      window.history.replaceState(null, "", window.location.pathname);
+
       if (sessionError || !data.session) {
         setStatus("error");
         setError("Google sign-in failed or was cancelled.");
