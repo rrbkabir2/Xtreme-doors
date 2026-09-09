@@ -138,8 +138,8 @@ const AdminProducts = () => {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Image too large", description: "Max size is 5MB.", variant: "destructive" });
+    if (file.size > 3 * 1024 * 1024) {
+      toast({ title: "Image too large", description: "Max size is 3MB.", variant: "destructive" });
       return;
     }
     setUploading(true);

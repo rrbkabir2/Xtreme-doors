@@ -5,17 +5,22 @@ import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
 import { readCookie, ACCESS_COOKIE } from "../_lib/cookies.js";
 import { getUserClient, getServiceClient } from "../_lib/supabaseServer.js";
 
-// Vercel's default body parser has a size ceiling that already helps,
-// but we double-check the decoded size ourselves below too.
+// NOTE: Vercel Serverless Functions have a hard platform-level request
+// body limit of ~4.5MB that cannot be raised from code — the
+// Next.js-style config below does nothing on this project's plain
+// @vercel/node setup and is kept only as documentation of intent.
+// Since base64 inflates the original file by ~33%, the real file-size
+// cap has to stay well under 4.5MB / 1.33 to leave room for the JSON
+// wrapper too.
 export const config = {
-  api: { bodyParser: { sizeLimit: "7mb" } },
+  api: { bodyParser: { sizeLimit: "4mb" } },
 };
 
 const uploadSchema = z.object({
   fileBase64: z.string().min(1),
 });
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_BYTES = 3 * 1024 * 1024; // 3MB (original file) — see note above on why this can't be higher
 
 // We identify the real file type from its first bytes ("magic
 // numbers"), never from the client-supplied filename or MIME type —
@@ -63,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const buffer = Buffer.from(parsed.data.fileBase64, "base64");
     if (buffer.length === 0) return res.status(400).json({ error: "Empty file." });
-    if (buffer.length > MAX_BYTES) return res.status(400).json({ error: "File too large (max 5MB)." });
+    if (buffer.length > MAX_BYTES) return res.status(400).json({ error: "File too large (max 3MB)." });
 
     const detected = detectImageType(buffer);
     if (!detected) return res.status(400).json({ error: "Only PNG, JPEG, or WEBP images are allowed." });
