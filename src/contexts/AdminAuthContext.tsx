@@ -1,3 +1,6 @@
+// FILE: src/contexts/AdminAuthContext.tsx
+// ACTION: Replace the ENTIRE file with this (fixes the concurrent-refresh race causing "Not authenticated")
+
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 // This context never stores the session token itself — it only holds
@@ -74,10 +77,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Called after Google's redirect completes and Supabase's client SDK
-  // has a temporary in-memory session. We hand those tokens to our own
-  // backend, which independently re-verifies them and checks admin
-  // status before granting real access — see api/admin/oauth-session.ts.
   const loginWithOAuthTokens = async (accessToken: string, refreshToken: string, expiresIn?: number) => {
     try {
       const res = await fetch("/api/admin/oauth-session", {
@@ -111,17 +110,34 @@ export function useAdminAuth() {
   return ctx;
 }
 
-/**
- * Wrapper for admin API calls: automatically retries once via
- *   automatically retries once via a session refresh if the access token has expired (401), so the
- * admin doesn't get logged out just because an hour passed.
- */
+// Concurrent 401s (e.g. two admin panel requests firing around the same
+// time) used to each independently call /api/admin/session to refresh —
+// but Supabase refresh tokens are single-use, so the second concurrent
+// refresh would find the first one had already consumed/rotated the
+// token, fail with its own 401, and cascade into "Not authenticated"
+// even right after a fresh login. This shared promise ensures only ONE
+// refresh actually happens no matter how many requests hit 401 at once;
+// everyone else just waits on the same result.
+let refreshInFlight: Promise<boolean> | null = null;
+
+function refreshSessionOnce(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch("/api/admin/session", { method: "POST", credentials: "include" })
+      .then((res) => res.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
 export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
   const first = await fetch(input, { ...init, credentials: "include" });
   if (first.status !== 401) return first;
 
-  const refreshed = await fetch("/api/admin/session", { method: "POST", credentials: "include" });
-  if (!refreshed.ok) return first;
+  const refreshedOk = await refreshSessionOnce();
+  if (!refreshedOk) return first;
 
   return fetch(input, { ...init, credentials: "include" });
 }
