@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // the Auth Admin API (service role), which sits outside Postgres RLS
     // entirely — so this explicit check is the only thing protecting it.
     const userClient = getUserClient(token);
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
     if (userErr || !userData.user) return res.status(401).json({ error: "Not authenticated." });
 
     const service = getServiceClient();

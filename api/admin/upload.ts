@@ -49,15 +49,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!token) return res.status(401).json({ error: "Not authenticated." });
 
     const userClient = getUserClient(token);
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
-      // TEMPORARY: surface the real reason instead of a generic message,
-      // so we can see exactly why getUser() rejected this token instead
-      // of guessing. Remove this once the Google-login upload bug is
-      // confirmed fixed.
-      console.error("[api/admin/upload] getUser failed:", userErr);
-      return res.status(401).json({ error: `Not authenticated: ${userErr?.message || "no user"}` });
-    }
+    // Pass the token directly instead of calling getUser() with no
+    // argument. getUserClient() only attaches the token as a request
+    // header (for database calls) — it never calls setSession(), so a
+    // no-argument getUser() has no session to look at and always throws
+    // "Auth session missing!", regardless of login method. Passing the
+    // token explicitly verifies it directly, with no session needed.
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData.user) return res.status(401).json({ error: "Not authenticated." });
 
     const parsed = uploadSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "Invalid upload." });

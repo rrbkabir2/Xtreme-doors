@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!token) return res.status(401).json({ error: "Not authenticated." });
 
     const userClient = getUserClient(token);
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
     if (userErr || !userData.user || !userData.user.email) {
       return res.status(401).json({ error: "Not authenticated." });
     }
