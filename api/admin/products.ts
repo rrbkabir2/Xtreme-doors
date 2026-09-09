@@ -20,6 +20,14 @@ const productSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
+function handleDbError(res: VercelResponse, error: { code?: string; message?: string }, context: string) {
+  console.error(`[${context}]`, error);
+  if (error.code === "42501" || error.code === "PGRST301") {
+    return res.status(403).json({ error: "Not authorized." });
+  }
+  return res.status(500).json({ error: error.message || "Something went wrong. Please try again shortly." });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   applySecurityHeaders(req, res);
   if (req.method === "OPTIONS") return res.status(204).end();
@@ -31,15 +39,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === "GET") {
       const { data, error } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
-      if (error) return res.status(403).json({ error: "Not authorized." });
+      if (error) return handleDbError(res, error, "api/admin/products GET");
       return res.status(200).json({ products: data });
     }
 
     if (req.method === "POST") {
       const parsed = productSchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ error: "Invalid product data." });
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid product data." });
+      }
       const { data, error } = await supabase.from("products").insert(parsed.data).select().single();
-      if (error) return res.status(403).json({ error: "Not authorized." });
+      if (error) return handleDbError(res, error, "api/admin/products POST");
       return res.status(200).json({ product: data });
     }
 
@@ -47,13 +57,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const idResult = z.string().uuid().safeParse(req.query.id);
       if (!idResult.success) return res.status(400).json({ error: "Missing product id." });
       const parsed = productSchema.partial().safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ error: "Invalid product data." });
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid product data." });
+      }
 
       const { error } = await supabase
         .from("products")
         .update({ ...parsed.data, updated_at: new Date().toISOString() })
         .eq("id", idResult.data);
-      if (error) return res.status(403).json({ error: "Not authorized." });
+      if (error) return handleDbError(res, error, "api/admin/products PUT");
       return res.status(200).json({ ok: true });
     }
 
@@ -62,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!idResult.success) return res.status(400).json({ error: "Missing product id." });
 
       const { error } = await supabase.from("products").delete().eq("id", idResult.data);
-      if (error) return res.status(403).json({ error: "Not authorized." });
+      if (error) return handleDbError(res, error, "api/admin/products DELETE");
       return res.status(200).json({ ok: true });
     }
 
