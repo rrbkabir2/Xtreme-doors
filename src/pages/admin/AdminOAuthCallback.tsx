@@ -32,7 +32,15 @@ const AdminOAuthCallback = () => {
       const { access_token, refresh_token, expires_in } = data.session;
 
       const result = await loginWithOAuthTokens(access_token, refresh_token, expires_in);
-      await client.auth.signOut();
+      // scope: "local" only clears this SDK instance's own in-memory state
+      // (there's nothing in localStorage anyway, since persistSession is
+      // false). The default scope ("global") would instead call Supabase's
+      // server and revoke the session outright — which is the exact
+      // session whose tokens we just handed to our backend and stored in
+      // our own httpOnly cookies above. That revocation is what was
+      // causing every admin request to immediately come back
+      // "Not authenticated" right after a Google sign-in.
+      await client.auth.signOut({ scope: "local" });
 
       if (result.ok) {
         setStatus("done");
