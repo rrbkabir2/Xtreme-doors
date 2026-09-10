@@ -1,3 +1,6 @@
+// FILE: src/pages/admin/AdminAdmins.tsx
+// ACTION: Replace the ENTIRE file with this (adds a "what each role can do" legend)
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/contexts/AdminAuthContext";
@@ -5,19 +8,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PasswordInput from "./PasswordInput";
 import { Plus, Trash2, Loader2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+type Role = "owner" | "dev" | "admin";
 
 interface AdminUser {
   user_id: string;
   email: string;
   created_at: string;
+  role: Role;
 }
 
-async function fetchAdmins(): Promise<{ admins: AdminUser[]; currentUserId: string }> {
+const roleLabel: Record<Role, string> = { owner: "Owner", dev: "Dev", admin: "Admin" };
+const roleVariant: Record<Role, "default" | "secondary" | "outline"> = {
+  owner: "default",
+  dev: "secondary",
+  admin: "outline",
+};
+
+async function fetchAdmins(): Promise<{ admins: AdminUser[]; currentUserId: string; currentUserRole: Role }> {
   const res = await adminFetch("/api/admin/admins");
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -34,6 +49,9 @@ const AdminAdmins = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<Role>("admin");
+
+  const canManage = data?.currentUserRole === "owner" || data?.currentUserRole === "dev";
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin-admins"] });
 
@@ -42,7 +60,7 @@ const AdminAdmins = () => {
       const res = await adminFetch("/api/admin/admins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create admin");
@@ -53,6 +71,7 @@ const AdminAdmins = () => {
       setDialogOpen(false);
       setEmail("");
       setPassword("");
+      setRole("admin");
       toast({ title: "Admin account created" });
     },
     onError: (err: Error) => {
@@ -88,9 +107,11 @@ const AdminAdmins = () => {
               : `${data?.admins.length ?? 0} admin${data?.admins.length === 1 ? "" : "s"} have access to this panel`}
           </p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Add Admin
-        </Button>
+        {canManage && (
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Add Admin
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -105,6 +126,46 @@ const AdminAdmins = () => {
 
       <Card>
         <CardContent className="pt-6">
+          <p className="text-sm font-medium mb-3">What each role can do</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <Badge variant="default">Owner</Badge>
+              <ul className="text-xs text-muted-foreground list-disc list-inside pt-1 space-y-0.5">
+                <li>Add and remove admins</li>
+                <li>Assign any role, including Owner</li>
+                <li>Manage quotes and products</li>
+              </ul>
+            </div>
+            <div className="space-y-1">
+              <Badge variant="secondary">Dev</Badge>
+              <ul className="text-xs text-muted-foreground list-disc list-inside pt-1 space-y-0.5">
+                <li>Add and remove admins</li>
+                <li>Assign any role, including Owner</li>
+                <li>Manage quotes and products</li>
+              </ul>
+            </div>
+            <div className="space-y-1">
+              <Badge variant="outline">Admin</Badge>
+              <ul className="text-xs text-muted-foreground list-disc list-inside pt-1 space-y-0.5">
+                <li>View the admin list only — can't add or remove</li>
+                <li>Manage quotes and products</li>
+              </ul>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground pt-3">
+            The system will never allow removing the very last Owner, so admin management can never be accidentally locked out.
+          </p>
+        </CardContent>
+      </Card>
+
+      {!isLoading && !isError && !canManage && (
+        <p className="text-xs text-muted-foreground">
+          Only Owners and Devs can add or remove admins — you can view the list.
+        </p>
+      )}
+
+      <Card>
+        <CardContent className="pt-6">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : isError ? (
@@ -114,8 +175,9 @@ const AdminAdmins = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Gmail</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Added</TableHead>
-                  <TableHead></TableHead>
+                  {canManage && <TableHead></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -127,21 +189,26 @@ const AdminAdmins = () => {
                         <span className="ml-2 text-xs text-muted-foreground">(you)</span>
                       )}
                     </TableCell>
-                    <TableCell>{new Date(a.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                      {a.user_id !== data.currentUserId && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1 text-destructive hover:text-destructive"
-                          onClick={() => {
-                            if (confirm(`Remove admin access for ${a.email}?`)) removeMutation.mutate(a.user_id);
-                          }}
-                        >
-                          <Trash2 className="w-3 h-3" /> Remove
-                        </Button>
-                      )}
+                    <TableCell>
+                      <Badge variant={roleVariant[a.role]}>{roleLabel[a.role]}</Badge>
                     </TableCell>
+                    <TableCell>{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                    {canManage && (
+                      <TableCell className="text-right">
+                        {a.user_id !== data.currentUserId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-destructive hover:text-destructive"
+                            onClick={() => {
+                              if (confirm(`Remove admin access for ${a.email}?`)) removeMutation.mutate(a.user_id);
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" /> Remove
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -150,43 +217,58 @@ const AdminAdmins = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Add Admin</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-admin-email">Email</Label>
-              <Input
-                id="new-admin-email"
-                type="email"
-                value={email}
-                maxLength={255}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+      {canManage && (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Add Admin</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-admin-email">Email</Label>
+                <Input
+                  id="new-admin-email"
+                  type="email"
+                  value={email}
+                  maxLength={255}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-admin-password">Initial password</Label>
+                <PasswordInput
+                  id="new-admin-password"
+                  value={password}
+                  maxLength={200}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">At least 8 characters. Share this with them securely — they can change it themselves afterward via "Forgot password."</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={role} onValueChange={(v) => setRole(v as Role)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin — manage quotes/products, view-only on admin list</SelectItem>
+                    <SelectItem value="dev">Dev — full access including adding/removing admins</SelectItem>
+                    <SelectItem value="owner">Owner — same as Dev, top-level role</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                className="w-full"
+                disabled={createMutation.isPending || !email.trim() || password.length < 8}
+                onClick={() => createMutation.mutate()}
+              >
+                {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create admin
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-admin-password">Initial password</Label>
-              <PasswordInput
-                id="new-admin-password"
-                value={password}
-                maxLength={200}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">At least 8 characters. Share this with them securely — they can change it themselves afterward via "Forgot password."</p>
-            </div>
-            <Button
-              className="w-full"
-              disabled={createMutation.isPending || !email.trim() || password.length < 8}
-              onClick={() => createMutation.mutate()}
-            >
-              {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Create admin
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
