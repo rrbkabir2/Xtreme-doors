@@ -1,8 +1,11 @@
+// FILE: api/admin/quotes.ts
+// ACTION: Replace the ENTIRE file with this (auth checked against Project A, data read/written on Project B)
+
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
 import { readCookie, ACCESS_COOKIE } from "../_lib/cookies.js";
-import { getUserClient } from "../_lib/supabaseServer.js";
+import { getUserClient, getServiceClient, getQuotesServiceClient } from "../_lib/supabaseServer.js";
 
 const updateSchema = z.object({
   id: z.string().uuid(),
@@ -18,14 +21,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const token = readCookie(req, ACCESS_COOKIE);
     if (!token) return res.status(401).json({ error: "Not authenticated." });
 
-    // This client carries the caller's own access token, so Postgres
-    // Row Level Security decides what they can see/change — not this
-    // function. Even a bug here can't expose more than RLS allows.
-    const supabase = getUserClient(token);
+    const userClient = getUserClient(token);
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData.user) return res.status(401).json({ error: "Not authenticated." });
+
+    const adminCheckClient = getServiceClient();
+    const { data: adminRow, error: adminCheckError } = await adminCheckClient
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (adminCheckError) throw adminCheckError;
+    if (!adminRow) return res.status(403).json({ error: "Not authorized." });
+
+    const quotes = getQuotesServiceClient();
 
     if (req.method === "GET") {
-      const { data, error } = await supabase.from("quotes").select("*").order("created_at", { ascending: false });
-      if (error) return res.status(403).json({ error: "Not authorized." });
+      const { data, error } = await quotes.from("quotes").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
       return res.status(200).json({ quotes: data });
     }
 
@@ -35,8 +48,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, ...updates } = parsed.data;
       if (Object.keys(updates).length === 0) return res.status(400).json({ error: "Nothing to update." });
 
-      const { error } = await supabase.from("quotes").update(updates).eq("id", id);
-      if (error) return res.status(403).json({ error: "Not authorized." });
+      const { error } = await quotes.from("quotes").update(updates).eq("id", id);
+      if (error) throw error;
       return res.status(200).json({ ok: true });
     }
 
