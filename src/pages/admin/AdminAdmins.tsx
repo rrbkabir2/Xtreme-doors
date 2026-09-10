@@ -124,40 +124,6 @@ const AdminAdmins = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-sm font-medium mb-3">What each role can do</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <Badge variant="default">Owner</Badge>
-              <ul className="text-xs text-muted-foreground list-disc list-inside pt-1 space-y-0.5">
-                <li>Add and remove admins</li>
-                <li>Assign any role, including Owner</li>
-                <li>Manage quotes and products</li>
-              </ul>
-            </div>
-            <div className="space-y-1">
-              <Badge variant="secondary">Dev</Badge>
-              <ul className="text-xs text-muted-foreground list-disc list-inside pt-1 space-y-0.5">
-                <li>Add and remove admins</li>
-                <li>Assign any role, including Owner</li>
-                <li>Manage quotes and products</li>
-              </ul>
-            </div>
-            <div className="space-y-1">
-              <Badge variant="outline">Admin</Badge>
-              <ul className="text-xs text-muted-foreground list-disc list-inside pt-1 space-y-0.5">
-                <li>View the admin list only — can't add or remove</li>
-                <li>Manage quotes and products</li>
-              </ul>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground pt-3">
-            The system will never allow removing the very last Owner, so admin management can never be accidentally locked out.
-          </p>
-        </CardContent>
-      </Card>
-
       {!isLoading && !isError && !canManage && (
         <p className="text-xs text-muted-foreground">
           Only Owners and Devs can add or remove admins — you can view the list.
