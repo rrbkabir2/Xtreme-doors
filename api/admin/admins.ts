@@ -1,6 +1,3 @@
-// FILE: api/admin/admins.ts
-// ACTION: Replace the ENTIRE file with this (roles feature + the getUser(token) fix merged together)
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { applySecurityHeaders, sendServerError } from "../_lib/security.js";

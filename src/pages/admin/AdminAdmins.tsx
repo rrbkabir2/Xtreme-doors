@@ -1,6 +1,3 @@
-// FILE: src/pages/admin/AdminAdmins.tsx
-// ACTION: Replace the ENTIRE file with this (adds a "what each role can do" legend)
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/contexts/AdminAuthContext";

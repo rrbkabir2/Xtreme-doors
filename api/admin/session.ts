@@ -1,6 +1,3 @@
-// FILE: api/admin/session.ts
-// ACTION: Replace the ENTIRE file with this (adds the getUser(token) fix)
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getAuthClient, getUserClient, getServiceClient } from "../_lib/supabaseServer.js";
 import { applySecurityHeaders, sendServerError } from "../_lib/security.js";
