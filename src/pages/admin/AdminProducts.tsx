@@ -63,7 +63,7 @@ function fileToBase64(file: File): Promise<string> {
 const AdminProducts = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data: products, isLoading } = useQuery({ queryKey: ["admin-products"], queryFn: fetchProducts });
+  const { data: products, isLoading, isError, error: productsError } = useQuery({ queryKey: ["admin-products"], queryFn: fetchProducts });
 
   const [editing, setEditing] = useState<Product | null>(null);
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
@@ -174,6 +174,8 @@ const AdminProducts = () => {
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : isError ? (
+        <p className="text-sm text-destructive">{(productsError as Error)?.message || "Could not load products."}</p>
       ) : !products || products.length === 0 ? (
         <p className="text-sm text-muted-foreground">No products yet — add your first one.</p>
       ) : (

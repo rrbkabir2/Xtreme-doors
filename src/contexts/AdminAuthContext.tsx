@@ -31,6 +31,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         setAuthenticated(true);
         setEmail(data.email);
       } else {
+        // TEMPORARY: show the exact failure reason in a popup so we can
+        // see it without needing DevTools. Remove once this is fixed.
+        const body = await res.json().catch(() => null);
+        if (body) alert("Session check failed:\n" + JSON.stringify(body, null, 2));
         setAuthenticated(false);
         setEmail(null);
       }
@@ -121,7 +125,18 @@ export async function adminFetch(input: string, init: RequestInit = {}): Promise
   if (first.status !== 401) return first;
 
   const refreshed = await fetch("/api/admin/session", { method: "POST", credentials: "include" });
-  if (!refreshed.ok) return first;
+  if (!refreshed.ok) {
+    // TEMPORARY: show exactly why the refresh failed, without needing
+    // DevTools. Remove once this is fixed.
+    const refreshBody = await refreshed.clone().json().catch(() => null);
+    alert(`Session refresh failed for ${input}:\n` + JSON.stringify(refreshBody, null, 2));
+    return first;
+  }
 
-  return fetch(input, { ...init, credentials: "include" });
+  const retried = await fetch(input, { ...init, credentials: "include" });
+  if (retried.status === 401) {
+    const retriedBody = await retried.clone().json().catch(() => null);
+    alert(`Still not authenticated after refresh, for ${input}:\n` + JSON.stringify(retriedBody, null, 2));
+  }
+  return retried;
 }
