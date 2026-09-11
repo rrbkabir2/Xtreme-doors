@@ -10,15 +10,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === "GET") {
       const token = readCookie(req, ACCESS_COOKIE);
-      if (!token) return res.status(401).json({ authenticated: false });
+      if (!token) return res.status(401).json({ authenticated: false, debugReason: "no_cookie" });
 
       const userClient = getUserClient(token);
       const { data, error } = await userClient.auth.getUser(token);
-      if (error || !data.user) return res.status(401).json({ authenticated: false });
+      if (error || !data.user) {
+        return res.status(401).json({
+          authenticated: false,
+          debugReason: "getUser_failed",
+          debugMessage: error?.message || "no user in response",
+        });
+      }
 
       const admin = getServiceClient();
-      const { data: adminRow } = await admin.from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
-      if (!adminRow) return res.status(401).json({ authenticated: false });
+      const { data: adminRow, error: adminLookupError } = await admin
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+      if (!adminRow) {
+        return res.status(401).json({
+          authenticated: false,
+          debugReason: "no_admin_row",
+          debugUserId: data.user.id,
+          debugEmail: data.user.email,
+          debugLookupError: adminLookupError?.message || null,
+        });
+      }
 
       return res.status(200).json({ authenticated: true, email: data.user.email });
     }
