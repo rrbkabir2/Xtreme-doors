@@ -1,6 +1,3 @@
-// FILE: api/admin/quotes.ts
-// ACTION: Replace the ENTIRE file with this (auth checked against Project A, data read/written on Project B)
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { applySecurityHeaders, sendServerError } from "../_lib/security.js";

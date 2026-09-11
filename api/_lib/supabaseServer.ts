@@ -1,6 +1,3 @@
-// FILE: api/_lib/supabaseServer.ts
-// ACTION: Replace the ENTIRE file with this (adds Project B client)
-
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 function requireEnv(name: string): string {

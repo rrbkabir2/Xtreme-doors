@@ -1,6 +1,3 @@
-// FILE: api/quote.ts
-// ACTION: Replace the ENTIRE file with this (full field spec, writes to Project B)
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { getQuotesServiceClient } from "./_lib/supabaseServer.js";
