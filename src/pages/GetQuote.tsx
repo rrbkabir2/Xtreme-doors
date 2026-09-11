@@ -543,7 +543,7 @@ const GetQuote = () => {
 
             {/* Sidebar contact info */}
             <div className="space-y-4">
-              <Card className="shadow-soft">
+                            <Card className="shadow-soft">
                 <CardContent className="pt-6 space-y-4">
                   <h3 className="font-semibold text-foreground mb-2">
                     Prefer to talk directly?
