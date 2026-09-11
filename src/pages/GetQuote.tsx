@@ -26,31 +26,67 @@ import { Card, CardContent } from "@/components/ui/card";
 import FormErrorState from "@/components/errors/FormErrorState";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, MapPin } from "lucide-react";
+import {
+  BUSINESS_LIKE_TYPES,
+  customerTypeOptions,
+  businessRoleOptions,
+  requirementForOptions,
+  projectTypeOptions,
+  purchaseTimelineOptions,
+  contactMethodOptions,
+} from "@/lib/quoteOptions";
 
-const quoteFormSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  phone: z
-    .string()
-    .trim()
-    .min(10, "Enter a valid phone number")
-    .max(15, "Enter a valid phone number")
-    .regex(/^[0-9+\-\s()]+$/, "Enter a valid phone number"),
-  email: z.string().trim().email("Enter a valid email address").max(255).optional().or(z.literal("")),
-  city: z.string().trim().max(100).optional().or(z.literal("")),
-  productType: z.string().min(1, "Please select a product type"),
-  quantity: z.string().trim().max(50).optional().or(z.literal("")),
-  message: z.string().trim().max(1000).optional().or(z.literal("")),
-});
+const quoteFormSchema = z
+  .object({
+    fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+    mobileNumber: z
+      .string()
+      .trim()
+      .max(15)
+      .regex(/^[0-9+\-\s()]*$/, "Enter a valid phone number")
+      .optional()
+      .or(z.literal("")),
+    email: z.string().trim().email("Enter a valid email address").max(255).optional().or(z.literal("")),
+    city: z.string().trim().max(100).optional().or(z.literal("")),
+
+    customerType: z.string().min(1, "Please select a customer type"),
+    companyName: z.string().trim().max(200).optional().or(z.literal("")),
+    businessRole: z.string().optional().or(z.literal("")),
+
+    requirementFor: z.string().min(1, "Please select what this is for"),
+    projectType: z.string().optional().or(z.literal("")),
+    projectSiteName: z.string().trim().max(200).optional().or(z.literal("")),
+    siteLocation: z.string().trim().max(300).optional().or(z.literal("")),
+
+    productType: z.string().trim().max(200).optional().or(z.literal("")),
+    quantity: z.string().trim().max(50).optional().or(z.literal("")),
+    additionalDetails: z.string().trim().max(1000).optional().or(z.literal("")),
+
+    purchaseTimeline: z.string().optional().or(z.literal("")),
+    preferredContactMethod: z.string().optional().or(z.literal("")),
+
+    leadSource: z.string().trim().max(200).optional().or(z.literal("")),
+  })
+  .refine((v) => (v.mobileNumber && v.mobileNumber.trim().length >= 10) || (v.email && v.email.length > 0), {
+    message: "Provide a mobile number or an email address.",
+    path: ["mobileNumber"],
+  })
+  .refine(
+    (v) => {
+      if (!(BUSINESS_LIKE_TYPES as readonly string[]).includes(v.customerType)) return true;
+      return !!v.companyName && v.companyName.trim().length > 0;
+    },
+    { message: "Company / business name is required for this customer type.", path: ["companyName"] }
+  )
+  .refine(
+    (v) => {
+      if (!(BUSINESS_LIKE_TYPES as readonly string[]).includes(v.customerType)) return true;
+      return !!v.businessRole && v.businessRole.length > 0;
+    },
+    { message: "Please select your role.", path: ["businessRole"] }
+  );
 
 type QuoteFormValues = z.infer<typeof quoteFormSchema>;
-
-const productOptions = [
-  "Laminated Flush Doors",
-  "Moulded Panel Doors",
-  "Door Frames",
-  "Post-Forming Doors",
-  "Not sure / Need guidance",
-];
 
 const GetQuote = () => {
   const { toast } = useToast();
@@ -58,17 +94,32 @@ const GetQuote = () => {
   const form = useForm<QuoteFormValues>({
     resolver: zodResolver(quoteFormSchema),
     defaultValues: {
-      name: "",
-      phone: "",
+      fullName: "",
+      mobileNumber: "",
       email: "",
       city: "",
+      customerType: "",
+      companyName: "",
+      businessRole: "",
+      requirementFor: "",
+      projectType: "",
+      projectSiteName: "",
+      siteLocation: "",
       productType: "",
       quantity: "",
-      message: "",
+      additionalDetails: "",
+      purchaseTimeline: "",
+      preferredContactMethod: "",
+      leadSource: "",
     },
   });
 
   const [submitFailed, setSubmitFailed] = useState(false);
+
+  const customerType = form.watch("customerType");
+  const projectSiteName = form.watch("projectSiteName");
+  const showBusinessSection = (BUSINESS_LIKE_TYPES as readonly string[]).includes(customerType);
+  const showSiteLocation = !!projectSiteName && projectSiteName.trim().length > 0;
 
   const onSubmit = async (values: QuoteFormValues) => {
     try {
@@ -114,153 +165,378 @@ const GetQuote = () => {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Form */}
             <Card className="lg:col-span-2 shadow-elegant">
               <CardContent className="pt-6">
                 {submitFailed ? (
                   <FormErrorState onRetry={() => setSubmitFailed(false)} />
                 ) : (
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-6"
-                  >
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Full Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+91 XXXXX XXXXX" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email (optional)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="you@example.com"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>City (optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your city" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="productType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Product Type *</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                      {/* 1. Customer Information */}
+                      <div className="space-y-6">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                          Customer Information
+                        </h2>
+                        <FormField
+                          control={form.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Full Name *</FormLabel>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a product" />
-                                </SelectTrigger>
+                                <Input placeholder="Your name" {...field} />
                               </FormControl>
-                              <SelectContent>
-                                {productOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid sm:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="mobileNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Mobile Number</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="+91 XXXXX XXXXX" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Address</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="you@example.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground -mt-4">
+                          Provide at least a mobile number or an email address.
+                        </p>
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your city" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Approx. Quantity (optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. 10 doors" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                      {/* 2. Customer Type */}
+                      <div className="space-y-6">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                          Customer Type
+                        </h2>
+                        <FormField
+                          control={form.control}
+                          name="customerType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Customer Type *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select customer type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {customerTypeOptions.map((o) => (
+                                    <SelectItem key={o.value} value={o.value}>
+                                      {o.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                    <FormField
-                      control={form.control}
-                      name="message"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Additional Details (optional)</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Sizes, finish, timeline, or anything else we should know"
-                              className="min-h-32 resize-none"
-                              {...field}
+                      {/* 3. Business Information — conditional */}
+                      {showBusinessSection && (
+                        <div className="space-y-6">
+                          <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                            Business Information
+                          </h2>
+                          <div className="grid sm:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="companyName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Company / Business Name *</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Your company name" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                            <FormField
+                              control={form.control}
+                              name="businessRole"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Business Role / Designation *</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {businessRoleOptions.map((o) => (
+                                        <SelectItem key={o.value} value={o.value}>
+                                          {o.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
                       )}
-                    />
 
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full sm:w-auto"
-                      disabled={form.formState.isSubmitting}
-                    >
-                      Submit Request
-                    </Button>
-                  </form>
-                </Form>
+                      {/* 4. Project Information */}
+                      <div className="space-y-6">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                          Project Information
+                        </h2>
+                        <FormField
+                          control={form.control}
+                          name="requirementFor"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Requirement For *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select requirement" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {requirementForOptions.map((o) => (
+                                    <SelectItem key={o.value} value={o.value}>
+                                      {o.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="projectType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Project Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select project type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {projectTypeOptions.map((o) => (
+                                    <SelectItem key={o.value} value={o.value}>
+                                      {o.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="projectSiteName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Project / Site Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Sunrise Apartments" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {showSiteLocation && (
+                          <FormField
+                            control={form.control}
+                            name="siteLocation"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Site Location</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Area, city" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
+
+                      {/* 5. Product Requirement */}
+                      <div className="space-y-6">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                          Product Requirement
+                        </h2>
+                        <div className="grid sm:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="productType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Product Type</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g. Flush doors" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="quantity"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Quantity</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g. 10 doors" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="additionalDetails"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Additional Details</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Sizes, finish, or anything else we should know"
+                                  className="min-h-24 resize-none"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* 6. Purchase Information */}
+                      <div className="space-y-6">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                          Purchase Information
+                        </h2>
+                        <div className="grid sm:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="purchaseTimeline"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Expected Purchase Timeline</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select timeline" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {purchaseTimelineOptions.map((o) => (
+                                      <SelectItem key={o.value} value={o.value}>
+                                        {o.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="preferredContactMethod"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Preferred Contact Method</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select method" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {contactMethodOptions.map((o) => (
+                                      <SelectItem key={o.value} value={o.value}>
+                                        {o.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 7. Lead Source */}
+                      <div className="space-y-6">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">
+                          Lead Source
+                        </h2>
+                        <FormField
+                          control={form.control}
+                          name="leadSource"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>How Did You Hear About Us?</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Google search, referral, social media" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full sm:w-auto"
+                        disabled={form.formState.isSubmitting}
+                      >
+                        Submit Request
+                      </Button>
+                    </form>
+                  </Form>
                 )}
               </CardContent>
             </Card>
@@ -272,14 +548,14 @@ const GetQuote = () => {
                   <h3 className="font-semibold text-foreground mb-2">
                     Prefer to talk directly?
                   </h3>
-                  <a
+                  
                     href="tel:+919404040031"
                     className="flex items-start gap-3 text-muted-foreground hover:text-primary transition-smooth"
                   >
                     <Phone className="w-5 h-5 mt-0.5 shrink-0" />
                     <span>+91 94040 40031 / 87961 30786</span>
                   </a>
-                  <a
+                  
                     href="mailto:xtremeedoors@gmail.com"
                     className="flex items-start gap-3 text-muted-foreground hover:text-primary transition-smooth"
                   >
