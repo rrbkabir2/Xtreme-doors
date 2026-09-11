@@ -9,17 +9,36 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, Mail, MapPin, Loader2 } from "lucide-react";
+import {
+  customerTypeLabels,
+  businessRoleLabels,
+  requirementForLabels,
+  projectTypeLabels,
+  purchaseTimelineLabels,
+  contactMethodLabels,
+  labelFor,
+} from "@/lib/quoteOptions";
 
 interface Quote {
   id: string;
   created_at: string;
-  name: string;
-  phone: string;
+  full_name: string;
+  mobile_number: string | null;
   email: string | null;
   city: string | null;
-  product_type: string;
+  customer_type: string;
+  company_name: string | null;
+  business_role: string | null;
+  requirement_for: string;
+  project_type: string | null;
+  project_site_name: string | null;
+  site_location: string | null;
+  product_type: string | null;
   quantity: string | null;
-  message: string | null;
+  additional_details: string | null;
+  purchase_timeline: string | null;
+  preferred_contact_method: string | null;
+  lead_source: string | null;
   status: "new" | "responded" | "closed";
   admin_notes: string | null;
 }
@@ -35,6 +54,16 @@ async function fetchQuotes(): Promise<Quote[]> {
   if (!res.ok) throw new Error("Failed to load quotes");
   const data = await res.json();
   return data.quotes;
+}
+
+function DetailRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <p>
+      <span className="text-muted-foreground">{label}: </span>
+      {value}
+    </p>
+  );
 }
 
 const AdminQuotes = () => {
@@ -80,8 +109,9 @@ const AdminQuotes = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Requirement</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -89,9 +119,10 @@ const AdminQuotes = () => {
               <TableBody>
                 {quotes.map((q) => (
                   <TableRow key={q.id} className="cursor-pointer" onClick={() => openQuote(q)}>
-                    <TableCell className="font-medium">{q.name}</TableCell>
-                    <TableCell>{q.product_type}</TableCell>
-                    <TableCell>{q.phone}</TableCell>
+                    <TableCell className="font-medium">{q.full_name}</TableCell>
+                    <TableCell>{labelFor(customerTypeLabels, q.customer_type)}</TableCell>
+                    <TableCell>{labelFor(requirementForLabels, q.requirement_for)}</TableCell>
+                    <TableCell>{q.mobile_number || q.email || "—"}</TableCell>
                     <TableCell>{new Date(q.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[q.status]}>{q.status}</Badge>
@@ -105,18 +136,20 @@ const AdminQuotes = () => {
       </Card>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle>{selected.name}</DialogTitle>
+                <DialogTitle>{selected.full_name}</DialogTitle>
               </DialogHeader>
 
               <div className="space-y-4">
                 <div className="space-y-2 text-sm">
-                  <a href={`tel:${selected.phone}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
-                    <Phone className="w-4 h-4" /> {selected.phone}
-                  </a>
+                  {selected.mobile_number && (
+                    <a href={`tel:${selected.mobile_number}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
+                      <Phone className="w-4 h-4" /> {selected.mobile_number}
+                    </a>
+                  )}
                   {selected.email && (
                     <a href={`mailto:${selected.email}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
                       <Mail className="w-4 h-4" /> {selected.email}
@@ -130,22 +163,28 @@ const AdminQuotes = () => {
                 </div>
 
                 <div className="text-sm space-y-1">
-                  <p>
-                    <span className="text-muted-foreground">Product: </span>
-                    {selected.product_type}
-                  </p>
-                  {selected.quantity && (
-                    <p>
-                      <span className="text-muted-foreground">Quantity: </span>
-                      {selected.quantity}
-                    </p>
-                  )}
-                  {selected.message && (
-                    <p>
-                      <span className="text-muted-foreground">Message: </span>
-                      {selected.message}
-                    </p>
-                  )}
+                  <DetailRow label="Customer type" value={labelFor(customerTypeLabels, selected.customer_type)} />
+                  <DetailRow label="Company" value={selected.company_name} />
+                  <DetailRow label="Role" value={labelFor(businessRoleLabels, selected.business_role)} />
+                </div>
+
+                <div className="text-sm space-y-1 border-t border-border/50 pt-3">
+                  <DetailRow label="Requirement for" value={labelFor(requirementForLabels, selected.requirement_for)} />
+                  <DetailRow label="Project type" value={labelFor(projectTypeLabels, selected.project_type)} />
+                  <DetailRow label="Project / site name" value={selected.project_site_name} />
+                  <DetailRow label="Site location" value={selected.site_location} />
+                </div>
+
+                <div className="text-sm space-y-1 border-t border-border/50 pt-3">
+                  <DetailRow label="Product" value={selected.product_type} />
+                  <DetailRow label="Quantity" value={selected.quantity} />
+                  <DetailRow label="Details" value={selected.additional_details} />
+                </div>
+
+                <div className="text-sm space-y-1 border-t border-border/50 pt-3">
+                  <DetailRow label="Timeline" value={labelFor(purchaseTimelineLabels, selected.purchase_timeline)} />
+                  <DetailRow label="Preferred contact" value={labelFor(contactMethodLabels, selected.preferred_contact_method)} />
+                  <DetailRow label="Heard about us via" value={selected.lead_source} />
                 </div>
 
                 <div className="space-y-2">
