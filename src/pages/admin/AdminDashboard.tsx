@@ -5,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { MessageSquareText, Clock, CheckCircle2, Inbox } from "lucide-react";
 import { Link } from "react-router-dom";
+import { requirementForLabels, labelFor } from "@/lib/quoteOptions";
 
 interface Quote {
   id: string;
   created_at: string;
-  name: string;
-  product_type: string;
+  full_name: string;
+  requirement_for: string;
   status: "new" | "responded" | "closed";
 }
 
@@ -136,8 +137,8 @@ const AdminDashboard = () => {
           {recent.map((q) => (
             <div key={q.id} className="flex items-center justify-between border-b border-border/50 pb-2 last:border-0 last:pb-0">
               <div>
-                <p className="text-sm font-medium">{q.name}</p>
-                <p className="text-xs text-muted-foreground">{q.product_type}</p>
+                                <p className="text-sm font-medium">{q.full_name}</p>
+                <p className="text-xs text-muted-foreground">{labelFor(requirementForLabels, q.requirement_for)}</p>
               </div>
               <Badge variant={statusVariant[q.status]}>{q.status}</Badge>
             </div>
