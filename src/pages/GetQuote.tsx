@@ -543,18 +543,18 @@ const GetQuote = () => {
 
             {/* Sidebar contact info */}
             <div className="space-y-4">
-                            <Card className="shadow-soft">
+              <Card className="shadow-soft">
                 <CardContent className="pt-6 space-y-4">
                   <h3 className="font-semibold text-foreground mb-2">
                     Prefer to talk directly?
                   </h3>
-                  <a
+                  
                     href="tel:+919404040031"
                     className="flex items-start gap-3 text-muted-foreground hover:text-primary transition-smooth"
                   >
                     <Phone className="w-5 h-5 mt-0.5 shrink-0" />
                     <span>+91 94040 40031 / 87961 30786</span>
-                  <a
+                  </a>
                   
                     href="mailto:xtremeedoors@gmail.com"
                     className="flex items-start gap-3 text-muted-foreground hover:text-primary transition-smooth"
