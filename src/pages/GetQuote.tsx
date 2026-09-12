@@ -199,7 +199,7 @@ const GetQuote = () => {
                               <FormItem>
                                 <FormLabel>Mobile Number</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="+91 XXXXX XXXXX" {...field} />
+                                  <Input type="tel" inputMode="numeric" placeholder="10-digit mobile number" {...field} onChange={(e) => { const value = e.target.value.replace(/\D/g, "").slice(0, 10); field.onChange(value); }} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
