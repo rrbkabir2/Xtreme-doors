@@ -42,8 +42,7 @@ const quoteFormSchema = z
     mobileNumber: z
       .string()
       .trim()
-      .max(15)
-      .regex(/^[0-9+\-\s()]*$/, "Enter a valid phone number")
+      .regex( /^(\+91[\s-]?)?[6-9]\d{9}$/, "Enter a valid 10-digit mobile number")
       .optional()
       .or(z.literal("")),
     email: z.string().trim().email("Enter a valid email address").max(255).optional().or(z.literal("")),
@@ -93,6 +92,8 @@ const GetQuote = () => {
 
   const form = useForm<QuoteFormValues>({
     resolver: zodResolver(quoteFormSchema),
+     mode: "onChange",
+     reValidateMode: "onChange" ,
     defaultValues: {
       fullName: "",
       mobileNumber: "",
