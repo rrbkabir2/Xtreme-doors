@@ -254,12 +254,12 @@ const GetQuote = () => {
                                     <SelectValue placeholder="Select customer type" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent className="max-h-[60vh] overflow-y-auto">
                                   {customerTypeOptions.map((o) => (
-                                    <SelectItem key={o.value} value={o.value}>
-                                      {o.label}
-                                    </SelectItem>
-                                  ))}
+                                   <SelectItem key={o.value} value={o.value}>
+                                     {o.label}
+                                   </SelectItem>
+                                    ))}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -300,7 +300,7 @@ const GetQuote = () => {
                                         <SelectValue placeholder="Select role" />
                                       </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
+                                    <SelectContent className="max-h-[60vh] overflow-y-auto">
                                       {businessRoleOptions.map((o) => (
                                         <SelectItem key={o.value} value={o.value}>
                                           {o.label}
@@ -333,7 +333,7 @@ const GetQuote = () => {
                                     <SelectValue placeholder="Select requirement" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent className="max-h-[60vh] overflow-y-auto">
                                   {requirementForOptions.map((o) => (
                                     <SelectItem key={o.value} value={o.value}>
                                       {o.label}
@@ -357,7 +357,7 @@ const GetQuote = () => {
                                     <SelectValue placeholder="Select project type" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
+                                <SelectContent className="max-h-[60vh] overflow-y-auto">
                                   {projectTypeOptions.map((o) => (
                                     <SelectItem key={o.value} value={o.value}>
                                       {o.label}
@@ -469,7 +469,7 @@ const GetQuote = () => {
                                       <SelectValue placeholder="Select timeline" />
                                     </SelectTrigger>
                                   </FormControl>
-                                  <SelectContent>
+                                  <SelectContent className="max-h-[60vh] overflow-y-auto">
                                     {purchaseTimelineOptions.map((o) => (
                                       <SelectItem key={o.value} value={o.value}>
                                         {o.label}
@@ -493,7 +493,7 @@ const GetQuote = () => {
                                       <SelectValue placeholder="Select method" />
                                     </SelectTrigger>
                                   </FormControl>
-                                  <SelectContent>
+                                  <SelectContent className="max-h-[60vh] overflow-y-auto">
                                     {contactMethodOptions.map((o) => (
                                       <SelectItem key={o.value} value={o.value}>
                                         {o.label}
