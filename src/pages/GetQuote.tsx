@@ -127,7 +127,11 @@ const GetQuote = () => {
       const response = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+  ...values,
+  purchaseTimeline: values.purchaseTimeline || undefined,
+  preferredContactMethod: values.preferredContactMethod || undefined,
+}),
       });
 
       if (!response.ok) {
