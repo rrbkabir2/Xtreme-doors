@@ -31,10 +31,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         setAuthenticated(true);
         setEmail(data.email);
       } else {
-        // TEMPORARY: show the exact failure reason in a popup so we can
-        // see it without needing DevTools. Remove once this is fixed.
-        const body = await res.json().catch(() => null);
-        if (body) alert("Session check failed:\n" + JSON.stringify(body, null, 2));
         setAuthenticated(false);
         setEmail(null);
       }
@@ -115,28 +111,44 @@ export function useAdminAuth() {
   return ctx;
 }
 
+// Concurrent 401s (e.g. the dashboard firing quotes + products + admins
+// requests all at once) used to each independently call
+// /api/admin/session to refresh — but Supabase refresh tokens are
+// single-use. The first concurrent refresh succeeds and rotates the
+// token; any other refresh racing at the same moment is then holding an
+// already-used refresh token, fails with "Session expired.", and
+// (since a failed refresh clears both auth cookies) wipes out the
+// perfectly good session the first refresh just established — which is
+// exactly the "Session expired." / "No session." pattern that was
+// showing up together. This shared promise ensures only ONE refresh
+// actually happens no matter how many requests hit 401 at once; every
+// other request just waits on that same result instead of racing.
+let refreshInFlight: Promise<boolean> | null = null;
+
+function refreshSessionOnce(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch("/api/admin/session", { method: "POST", credentials: "include" })
+      .then((res) => res.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
 /**
- * Wrapper for admin API calls: automatically retries once via
- *   automatically retries once via a session refresh if the access token has expired (401), so the
- * admin doesn't get logged out just because an hour passed.
+ * Wrapper for admin API calls: automatically retries once via a shared,
+ * de-duplicated session refresh if the access token has expired (401),
+ * so the admin doesn't get logged out just because an hour passed — or
+ * because a sibling request happened to refresh at the same moment.
  */
 export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
   const first = await fetch(input, { ...init, credentials: "include" });
   if (first.status !== 401) return first;
 
-  const refreshed = await fetch("/api/admin/session", { method: "POST", credentials: "include" });
-  if (!refreshed.ok) {
-    // TEMPORARY: show exactly why the refresh failed, without needing
-    // DevTools. Remove once this is fixed.
-    const refreshBody = await refreshed.clone().json().catch(() => null);
-    alert(`Session refresh failed for ${input}:\n` + JSON.stringify(refreshBody, null, 2));
-    return first;
-  }
+  const refreshedOk = await refreshSessionOnce();
+  if (!refreshedOk) return first;
 
-  const retried = await fetch(input, { ...init, credentials: "include" });
-  if (retried.status === 401) {
-    const retriedBody = await retried.clone().json().catch(() => null);
-    alert(`Still not authenticated after refresh, for ${input}:\n` + JSON.stringify(retriedBody, null, 2));
-  }
-  return retried;
+  return fetch(input, { ...init, credentials: "include" });
 }
