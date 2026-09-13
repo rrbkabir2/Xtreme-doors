@@ -57,12 +57,12 @@ const quoteFormSchema = z
     projectSiteName: z.string().trim().max(200).optional().or(z.literal("")),
     siteLocation: z.string().trim().max(300).optional().or(z.literal("")),
 
-    productType: z.string().trim().max(200).optional().or(z.literal("")),
+    productType: z.enum(["new_construction", "renovation", "replacement", "interior", "maintenance", "other"]).optional().or(z.literal("")),
     quantity: z.string().trim().max(50).optional().or(z.literal("")),
     additionalDetails: z.string().trim().max(1000).optional().or(z.literal("")),
 
-    purchaseTimeline: z.string().optional().or(z.literal("")),
-    preferredContactMethod: z.string().optional().or(z.literal("")),
+    purchaseTimeline: z.enum(["immediate", "1_week", "1_month", "1_3_months", "3_6_months", "6_plus_months", "researching"]).optional().or(z.literal("")),
+    preferredContactMethod: z.enum(["phone", "whatsapp", "email", "other"]).optional().or(z.literal("")),
 
     leadSource: z.string().trim().max(200).optional().or(z.literal("")),
   })
