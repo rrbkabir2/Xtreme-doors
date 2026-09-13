@@ -129,6 +129,7 @@ const GetQuote = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
   ...values,
+  projectType: values.projectType || undefined,
   purchaseTimeline: values.purchaseTimeline || undefined,
   preferredContactMethod: values.preferredContactMethod || undefined,
 }),
