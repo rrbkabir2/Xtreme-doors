@@ -1,3 +1,10 @@
+// FILE: src/lib/quoteOptions.ts
+// ACTION: Replace the ENTIRE file with this
+
+// Shared between the public quote form (GetQuote.tsx) and the admin
+// quotes view (AdminQuotes.tsx) so the option lists and their labels
+// never drift out of sync between the two.
+
 export const BUSINESS_LIKE_TYPES = ["business", "dealer", "contractor", "architect", "builder"] as const;
 
 export const customerTypeOptions = [
@@ -68,6 +75,34 @@ export const contactMethodOptions = [
   { value: "other", label: "Other" },
 ];
 
+export const leadSourceOptions = [
+  { value: "google_search", label: "Google Search" },
+  { value: "social_media", label: "Social Media (Facebook/Instagram)" },
+  { value: "referral", label: "Referral (Friend/Family)" },
+  { value: "existing_customer", label: "Existing Customer" },
+  { value: "newspaper_ad", label: "Newspaper / Print Ad" },
+  { value: "exhibition", label: "Exhibition / Trade Show" },
+  { value: "website", label: "Website" },
+  { value: "other", label: "Other" },
+];
+
+// Accepts common ways people type an Indian mobile number (with/without
+// +91, spaces, dashes, a leading 0) and normalizes down to the bare
+// 10-digit number, which is what actually gets validated and stored.
+// A real Indian mobile number always starts with 6, 7, 8, or 9.
+export function normalizeIndianMobile(raw: string): string {
+  let digits = raw.replace(/[\s\-()]/g, "");
+  digits = digits.replace(/^\+?91/, "");
+  digits = digits.replace(/^0/, "");
+  return digits;
+}
+
+export const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
+
+export function isValidIndianMobile(raw: string): boolean {
+  return INDIAN_MOBILE_REGEX.test(normalizeIndianMobile(raw));
+}
+
 function buildLabelMap(options: { value: string; label: string }[]): Record<string, string> {
   return Object.fromEntries(options.map((o) => [o.value, o.label]));
 }
@@ -78,6 +113,7 @@ export const requirementForLabels = buildLabelMap(requirementForOptions);
 export const projectTypeLabels = buildLabelMap(projectTypeOptions);
 export const purchaseTimelineLabels = buildLabelMap(purchaseTimelineOptions);
 export const contactMethodLabels = buildLabelMap(contactMethodOptions);
+export const leadSourceLabels = buildLabelMap(leadSourceOptions);
 
 export function labelFor(map: Record<string, string>, value: string | null | undefined): string {
   if (!value) return "—";

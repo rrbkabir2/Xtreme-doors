@@ -1,8 +1,12 @@
+// FILE: api/quote.ts
+// ACTION: Replace the ENTIRE file with this
+
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { getQuotesServiceClient } from "./_lib/supabaseServer.js";
 import { applySecurityHeaders, sendServerError } from "./_lib/security.js";
 import { checkRateLimit, getClientIp } from "./_lib/rateLimit.js";
+import { isValidIndianMobile, normalizeIndianMobile } from "../src/lib/quoteOptions.js";
 
 const BUSINESS_LIKE_TYPES = ["business", "dealer", "contractor", "architect", "builder"] as const;
 
@@ -12,11 +16,10 @@ const quoteSchema = z
     mobileNumber: z
       .string()
       .trim()
-      .min(10)
       .max(15)
-      .regex(/^[0-9+\-\s()]+$/)
       .optional()
-      .or(z.literal("")),
+      .or(z.literal(""))
+      .refine((v) => !v || isValidIndianMobile(v), "Enter a valid 10-digit Indian mobile number"),
     email: z.string().trim().email().max(255).optional().or(z.literal("")),
     city: z.string().trim().max(100).optional().or(z.literal("")),
     customerType: z.enum(["individual", "business", "dealer", "contractor", "architect", "builder", "other"]),
@@ -28,7 +31,8 @@ const quoteSchema = z
     ]),
     projectType: z
       .enum(["new_construction", "renovation", "replacement", "interior", "maintenance", "other"])
-      .optional(),
+      .optional()
+      .or(z.literal("")),
     projectSiteName: z.string().trim().max(200).optional().or(z.literal("")),
     siteLocation: z.string().trim().max(300).optional().or(z.literal("")),
     productType: z.string().trim().max(200).optional().or(z.literal("")),
@@ -36,9 +40,13 @@ const quoteSchema = z
     additionalDetails: z.string().trim().max(1000).optional().or(z.literal("")),
     purchaseTimeline: z
       .enum(["immediate", "1_week", "1_month", "1_3_months", "3_6_months", "6_plus_months", "researching"])
-      .optional(),
-    preferredContactMethod: z.enum(["phone", "whatsapp", "email", "other"]).optional(),
-    leadSource: z.string().trim().max(200).optional().or(z.literal("")),
+      .optional()
+      .or(z.literal("")),
+    preferredContactMethod: z.enum(["phone", "whatsapp", "email", "other"]).optional().or(z.literal("")),
+    leadSource: z
+      .enum(["google_search", "social_media", "referral", "existing_customer", "newspaper_ad", "exhibition", "website", "other"])
+      .optional()
+      .or(z.literal("")),
   })
   .refine((v) => (v.mobileNumber && v.mobileNumber.length > 0) || (v.email && v.email.length > 0), {
     message: "Provide a mobile number or an email address.",
@@ -74,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = getQuotesServiceClient();
     const { error } = await supabase.from("quotes").insert({
       full_name: v.fullName,
-      mobile_number: v.mobileNumber || null,
+      mobile_number: v.mobileNumber ? normalizeIndianMobile(v.mobileNumber) : null,
       email: v.email || null,
       city: v.city || null,
       customer_type: v.customerType,

@@ -64,7 +64,7 @@ const quoteFormSchema = z
     purchaseTimeline: z.enum(["immediate", "1_week", "1_month", "1_3_months", "3_6_months", "6_plus_months", "researching"]).optional().or(z.literal("")),
     preferredContactMethod: z.enum(["phone", "whatsapp", "email", "other"]).optional().or(z.literal("")),
 
-    leadSource: z.string().trim().max(200).optional().or(z.literal("")),
+        leadSource: z.string().optional().or(z.literal("")),
   })
   .refine((v) => (v.mobileNumber && v.mobileNumber.trim().length >= 10) || (v.email && v.email.length > 0), {
     message: "Provide a mobile number or an email address.",
