@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { getSupabaseAuthClient } from "@/lib/supabaseAuthClient";
+import { getRedirectAuthClient } from "@/lib/supabaseAuthClient";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,7 @@ const AdminLogin = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const client = getSupabaseAuthClient();
+    const client = getRedirectAuthClient();
     if (!client) {
       setError("Google sign-in isn't configured yet.");
       return;

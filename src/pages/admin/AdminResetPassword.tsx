@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabaseBrowserAuthClient } from "@/lib/supabaseAuthClient";
+import { getSharedAuthClient } from "@/lib/supabaseAuthClient";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,14 +19,15 @@ const AdminResetPassword = () => {
 
   useEffect(() => {
     const check = async () => {
-      if (!supabaseBrowserAuthClient) {
+      const client = getSharedAuthClient();
+      if (!client) {
         setInvalidLink(true);
         return;
       }
       // The recovery link puts a temporary session in place via the URL
       // fragment (handled by detectSessionInUrl on this client). If it's
       // missing or expired, there's no session to act on.
-      const { data } = await supabaseBrowserAuthClient.auth.getSession();
+      const { data } = await client.auth.getSession();
       if (!data.session) {
         setInvalidLink(true);
       } else {
@@ -48,13 +49,14 @@ const AdminResetPassword = () => {
       setError("Passwords don't match.");
       return;
     }
-    if (!supabaseBrowserAuthClient) return;
+    const client = getSharedAuthClient();
+    if (!client) return;
 
     setSubmitting(true);
-    const { error: updateError } = await supabaseBrowserAuthClient.auth.updateUser({ password });
+    const { error: updateError } = await client.auth.updateUser({ password });
     // Immediately drop this temporary client-side session either way —
     // it's only ever used for this one action.
-    await supabaseBrowserAuthClient.auth.signOut();
+    await client.auth.signOut();
     setSubmitting(false);
 
     if (updateError) {
