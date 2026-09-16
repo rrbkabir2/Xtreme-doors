@@ -1,3 +1,6 @@
+// FILE: src/pages/admin/AdminAdmins.tsx
+// ACTION: Replace the ENTIRE file with this
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/contexts/AdminAuthContext";
@@ -134,48 +137,50 @@ const AdminAdmins = () => {
           ) : isError ? (
             <p className="text-sm text-destructive">{(queryError as Error)?.message || "Could not load admins."}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Gmail</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Added</TableHead>
-                  {canManage && <TableHead></TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data?.admins.map((a) => (
-                  <TableRow key={a.user_id}>
-                    <TableCell className="font-medium">
-                      {a.email}
-                      {a.user_id === data.currentUserId && (
-                        <span className="ml-2 text-xs text-muted-foreground">(you)</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={roleVariant[a.role]}>{roleLabel[a.role]}</Badge>
-                    </TableCell>
-                    <TableCell>{new Date(a.created_at).toLocaleDateString()}</TableCell>
-                    {canManage && (
-                      <TableCell className="text-right">
-                        {a.user_id !== data.currentUserId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1 text-destructive hover:text-destructive"
-                            onClick={() => {
-                              if (confirm(`Remove admin access for ${a.email}?`)) removeMutation.mutate(a.user_id);
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3" /> Remove
-                          </Button>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Gmail</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="hidden sm:table-cell">Added</TableHead>
+                    {canManage && <TableHead></TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data?.admins.map((a) => (
+                    <TableRow key={a.user_id}>
+                      <TableCell className="font-medium max-w-[140px] sm:max-w-none truncate">
+                        {a.email}
+                        {a.user_id === data.currentUserId && (
+                          <span className="ml-2 text-xs text-muted-foreground">(you)</span>
                         )}
                       </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <TableCell>
+                        <Badge variant={roleVariant[a.role]}>{roleLabel[a.role]}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                      {canManage && (
+                        <TableCell className="text-right">
+                          {a.user_id !== data.currentUserId && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm(`Remove admin access for ${a.email}?`)) removeMutation.mutate(a.user_id);
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3" /> Remove
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -1,3 +1,6 @@
+// FILE: src/pages/admin/AdminQuotes.tsx
+// ACTION: Replace the ENTIRE file with this
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminFetch } from "@/contexts/AdminAuthContext";
@@ -16,6 +19,7 @@ import {
   projectTypeLabels,
   purchaseTimelineLabels,
   contactMethodLabels,
+  leadSourceLabels,
   labelFor,
 } from "@/lib/quoteOptions";
 
@@ -105,32 +109,34 @@ const AdminQuotes = () => {
           ) : !quotes || quotes.length === 0 ? (
             <p className="text-sm text-muted-foreground">No quote requests yet.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Requirement</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quotes.map((q) => (
-                  <TableRow key={q.id} className="cursor-pointer" onClick={() => openQuote(q)}>
-                    <TableCell className="font-medium">{q.full_name}</TableCell>
-                    <TableCell>{labelFor(customerTypeLabels, q.customer_type)}</TableCell>
-                    <TableCell>{labelFor(requirementForLabels, q.requirement_for)}</TableCell>
-                    <TableCell>{q.mobile_number || q.email || "—"}</TableCell>
-                    <TableCell>{new Date(q.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant[q.status]}>{q.status}</Badge>
-                    </TableCell>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="hidden md:table-cell">Type</TableHead>
+                    <TableHead className="hidden lg:table-cell">Requirement</TableHead>
+                    <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                    <TableHead className="hidden md:table-cell">Date</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {quotes.map((q) => (
+                    <TableRow key={q.id} className="cursor-pointer" onClick={() => openQuote(q)}>
+                      <TableCell className="font-medium max-w-[140px] sm:max-w-none truncate">{q.full_name}</TableCell>
+                      <TableCell className="hidden md:table-cell">{labelFor(customerTypeLabels, q.customer_type)}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{labelFor(requirementForLabels, q.requirement_for)}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{q.mobile_number || q.email || "—"}</TableCell>
+                      <TableCell className="hidden md:table-cell">{new Date(q.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={statusVariant[q.status]}>{q.status}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -184,7 +190,7 @@ const AdminQuotes = () => {
                 <div className="text-sm space-y-1 border-t border-border/50 pt-3">
                   <DetailRow label="Timeline" value={labelFor(purchaseTimelineLabels, selected.purchase_timeline)} />
                   <DetailRow label="Preferred contact" value={labelFor(contactMethodLabels, selected.preferred_contact_method)} />
-                  <DetailRow label="Heard about us via" value={selected.lead_source} />
+                  <DetailRow label="Heard about us via" value={labelFor(leadSourceLabels, selected.lead_source)} />
                 </div>
 
                 <div className="space-y-2">

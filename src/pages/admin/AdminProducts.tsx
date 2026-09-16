@@ -281,9 +281,8 @@ const AdminProducts = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="e.g. Termite resistant"
+                            <div className="flex gap-2">
+                <Input placeholder="Label (e.g. Thickness)"
                   value={featureInput}
                   maxLength={200}
                   onChange={(e) => setFeatureInput(e.target.value)}
