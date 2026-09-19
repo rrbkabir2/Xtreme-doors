@@ -80,6 +80,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!adminRow) {
+      try {
+        await admin.auth.admin.deleteUser(data.user.id);
+      } catch (delErr) {
+        console.error("Failed to delete unauthorized user from auth.users:", delErr);
+      }
       await authClient.auth.signOut();
       return res.status(403).json({ error: "This account is not authorized for admin access." });
     }

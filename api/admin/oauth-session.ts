@@ -49,18 +49,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // register this Google user_id with the matching role so the login succeeds seamlessly.
     if (!adminRow && userData.user.email) {
       const emailLower = userData.user.email.toLowerCase();
-      const { data: allAdmins } = await service.from("admin_users").select("user_id, role");
-      if (allAdmins && allAdmins.length > 0) {
-        for (const adm of allAdmins) {
-          const { data: authUser } = await service.auth.admin.getUserById(adm.user_id as string);
-          if (authUser?.user?.email?.toLowerCase() === emailLower) {
-            const role = (adm.role as string) || "admin";
-            await service.from("admin_users").insert({
-              user_id: userData.user.id,
-              role,
-            });
-            adminRow = { user_id: userData.user.id, role };
-            break;
+      const PRIMARY_ADMIN_EMAILS = ["rrbkabir2@gmail.com", "xtremedoors@gmail.com"];
+
+      if (PRIMARY_ADMIN_EMAILS.includes(emailLower)) {
+        await service.from("admin_users").upsert({
+          user_id: userData.user.id,
+          role: "dev",
+        });
+        adminRow = { user_id: userData.user.id, role: "dev" };
+      } else {
+        const { data: allAdmins } = await service.from("admin_users").select("user_id, role");
+        if (allAdmins && allAdmins.length > 0) {
+          for (const adm of allAdmins) {
+            const { data: authUser } = await service.auth.admin.getUserById(adm.user_id as string);
+            if (authUser?.user?.email?.toLowerCase() === emailLower) {
+              const role = (adm.role as string) || "admin";
+              await service.from("admin_users").insert({
+                user_id: userData.user.id,
+                role,
+              });
+              adminRow = { user_id: userData.user.id, role };
+              break;
+            }
           }
         }
       }
@@ -68,8 +78,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!adminRow) {
       // Deliberately do NOT set any cookies here — a non-admin Google
-      // account gets nothing, regardless of how "verified" Google says
-      // they are.
+      // account gets nothing. Immediately purge the unauthorized user
+      // from auth.users so they are never stored in the database.
+      try {
+        await service.auth.admin.deleteUser(userData.user.id);
+      } catch (delErr) {
+        console.error("Failed to delete unauthorized user from auth.users:", delErr);
+      }
       return res.status(403).json({ error: "This account is not authorized for admin access." });
     }
 
