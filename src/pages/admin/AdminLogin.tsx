@@ -43,7 +43,10 @@ const AdminLogin = () => {
     setGoogleLoading(true);
     const { error: oauthError } = await client.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/admin/oauth-callback` },
+      options: {
+        redirectTo: `${window.location.origin}/admin/oauth-callback`,
+        queryParams: { prompt: "select_account" },
+      },
     });
     if (oauthError) {
       setError("Could not start Google sign-in.");
