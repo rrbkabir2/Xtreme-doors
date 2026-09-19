@@ -37,12 +37,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const service = getServiceClient();
-    const { data: adminRow, error: adminCheckError } = await service
+    let { data: adminRow, error: adminCheckError } = await service
       .from("admin_users")
-      .select("user_id")
+      .select("user_id, role")
       .eq("user_id", userData.user.id)
       .maybeSingle();
     if (adminCheckError) throw adminCheckError;
+
+    // If this specific user_id is not in admin_users, check if their verified
+    // Google email matches an existing authorized admin. If so, automatically
+    // register this Google user_id with the matching role so the login succeeds seamlessly.
+    if (!adminRow && userData.user.email) {
+      const emailLower = userData.user.email.toLowerCase();
+      const { data: allAdmins } = await service.from("admin_users").select("user_id, role");
+      if (allAdmins && allAdmins.length > 0) {
+        for (const adm of allAdmins) {
+          const { data: authUser } = await service.auth.admin.getUserById(adm.user_id as string);
+          if (authUser?.user?.email?.toLowerCase() === emailLower) {
+            const role = (adm.role as string) || "admin";
+            await service.from("admin_users").insert({
+              user_id: userData.user.id,
+              role,
+            });
+            adminRow = { user_id: userData.user.id, role };
+            break;
+          }
+        }
+      }
+    }
 
     if (!adminRow) {
       // Deliberately do NOT set any cookies here — a non-admin Google

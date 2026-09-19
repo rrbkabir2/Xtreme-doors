@@ -19,27 +19,58 @@ const AdminOAuthCallback = () => {
         return;
       }
 
-      const { data, error: sessionError } = await client.auth.getSession();
+      // Check URL search and hash for explicit OAuth errors returned by Google/Supabase
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const oauthErrorDesc =
+        searchParams.get("error_description") ||
+        hashParams.get("error_description") ||
+        searchParams.get("error") ||
+        hashParams.get("error");
+
+      if (oauthErrorDesc) {
+        window.history.replaceState(null, "", window.location.pathname);
+        setStatus("error");
+        setError(oauthErrorDesc);
+        return;
+      }
+
+      let session = null;
+      const code = searchParams.get("code");
+
+      // Handle PKCE authorization code exchange
+      if (code) {
+        try {
+          const { data: codeData, error: codeError } = await client.auth.exchangeCodeForSession(code);
+          if (!codeError && codeData?.session) {
+            session = codeData.session;
+          } else if (codeError) {
+            console.error("exchangeCodeForSession failed:", codeError);
+          }
+        } catch (e) {
+          console.error("Code exchange exception:", e);
+        }
+      }
+
+      // Fallback for implicit grant flow (tokens in URL hash)
+      if (!session) {
+        const { data: sessionData, error: sessionError } = await client.auth.getSession();
+        if (!sessionError && sessionData?.session) {
+          session = sessionData.session;
+        }
+      }
 
       window.history.replaceState(null, "", window.location.pathname);
 
-      if (sessionError || !data.session) {
+      if (!session) {
         setStatus("error");
         setError("Google sign-in failed or was cancelled.");
         return;
       }
 
-      const { access_token, refresh_token, expires_in } = data.session;
+      const { access_token, refresh_token, expires_in } = session;
 
       const result = await loginWithOAuthTokens(access_token, refresh_token, expires_in);
-      // scope: "local" only clears this SDK instance's own in-memory state
-      // (there's nothing in localStorage anyway, since persistSession is
-      // false). The default scope ("global") would instead call Supabase's
-      // server and revoke the session outright — which is the exact
-      // session whose tokens we just handed to our backend and stored in
-      // our own httpOnly cookies above. That revocation is what was
-      // causing every admin request to immediately come back
-      // "Not authenticated" right after a Google sign-in.
       await client.auth.signOut({ scope: "local" });
 
       if (result.ok) {
