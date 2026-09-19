@@ -68,10 +68,22 @@ const AdminOAuthCallback = () => {
         return;
       }
 
-      const { access_token, refresh_token, expires_in } = session;
-
       const result = await loginWithOAuthTokens(access_token, refresh_token, expires_in);
-      await client.auth.signOut({ scope: "local" });
+      
+      // Clear any temporary client-side tokens from localStorage WITHOUT calling
+      // client.auth.signOut() (which calls Supabase API to revoke the session / refresh token!)
+      try {
+        if (typeof window !== "undefined") {
+          for (let i = window.localStorage.length - 1; i >= 0; i--) {
+            const k = window.localStorage.key(i);
+            if (k && k.startsWith("sb-") && k.endsWith("-auth-token")) {
+              window.localStorage.removeItem(k);
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
 
       if (result.ok) {
         setStatus("done");

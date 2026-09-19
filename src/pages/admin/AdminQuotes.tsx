@@ -72,7 +72,7 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
 
 const AdminQuotes = () => {
   const queryClient = useQueryClient();
-  const { data: quotes, isLoading } = useQuery({ queryKey: ["admin-quotes"], queryFn: fetchQuotes });
+  const { data: quotes, isLoading, isError, error } = useQuery({ queryKey: ["admin-quotes"], queryFn: fetchQuotes });
   const [selected, setSelected] = useState<Quote | null>(null);
   const [notesDraft, setNotesDraft] = useState("");
 
@@ -106,6 +106,8 @@ const AdminQuotes = () => {
         <CardContent className="pt-6">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : isError ? (
+            <p className="text-sm text-destructive">{(error as Error)?.message || "Failed to load quotes."}</p>
           ) : !quotes || quotes.length === 0 ? (
             <p className="text-sm text-muted-foreground">No quote requests yet.</p>
           ) : (

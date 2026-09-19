@@ -86,7 +86,7 @@ export function readCookie(req: VercelRequest, name: string): string | null {
   const exact = parts.find((c) => c.startsWith(name + "="));
   if (exact) {
     const value = exact.slice(name.length + 1);
-    return value ? decodeURIComponent(value) : null;
+    if (value) return decodeURIComponent(value);
   }
 
   // Oversized case: reassemble name.0, name.1, ... in order. Stop at the

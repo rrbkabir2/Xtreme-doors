@@ -46,12 +46,12 @@ function buildChartData(quotes: Quote[]) {
 }
 
 const AdminDashboard = () => {
-  const { data: quotes, isLoading } = useQuery({ queryKey: ["admin-quotes"], queryFn: fetchQuotes });
+  const { data: quotes, isLoading, isError } = useQuery({ queryKey: ["admin-quotes"], queryFn: fetchQuotes });
 
-  const total = quotes?.length ?? 0;
-  const newCount = quotes?.filter((q) => q.status === "new").length ?? 0;
-  const respondedCount = quotes?.filter((q) => q.status === "responded").length ?? 0;
-  const closedCount = quotes?.filter((q) => q.status === "closed").length ?? 0;
+  const total = isLoading ? "…" : isError ? "—" : quotes?.length ?? 0;
+  const newCount = isLoading ? "…" : isError ? "—" : quotes?.filter((q) => q.status === "new").length ?? 0;
+  const respondedCount = isLoading ? "…" : isError ? "—" : quotes?.filter((q) => q.status === "responded").length ?? 0;
+  const closedCount = isLoading ? "…" : isError ? "—" : quotes?.filter((q) => q.status === "closed").length ?? 0;
   const chartData = quotes ? buildChartData(quotes) : [];
   const recent = quotes?.slice(0, 5) ?? [];
 
