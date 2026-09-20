@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PasswordInput from "./PasswordInput";
-import { Plus, Trash2, Loader2, Users } from "lucide-react";
+import { Plus, Trash2, Loader2, Users, Sparkles, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type Role = "owner" | "dev" | "admin";
@@ -31,6 +31,29 @@ const roleVariant: Record<Role, "default" | "secondary" | "outline"> = {
   dev: "secondary",
   admin: "outline",
 };
+
+function generateSecurePassword(): string {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnpqrstuvwxyz";
+  const digits = "23456789";
+  const special = "!@#$%&*";
+  const pick = (chars: string) => chars[Math.floor(Math.random() * chars.length)];
+  const chars = [
+    pick(upper),
+    pick(lower),
+    pick(digits),
+    pick(special),
+    pick(upper),
+    pick(lower),
+    pick(digits),
+    pick(special),
+    pick(lower),
+    pick(upper),
+    pick(digits),
+    pick(special),
+  ];
+  return chars.sort(() => Math.random() - 0.5).join("");
+}
 
 async function fetchAdmins(): Promise<{ admins: AdminUser[]; currentUserId: string; currentUserRole: Role }> {
   const res = await adminFetch("/api/admin/admins");
@@ -50,8 +73,36 @@ const AdminAdmins = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>("admin");
+  const [copied, setCopied] = useState(false);
 
   const canManage = data?.currentUserRole === "owner" || data?.currentUserRole === "dev";
+
+  const openAddAdminDialog = () => {
+    setEmail("");
+    setPassword("");
+    setRole("admin");
+    setCopied(false);
+    setDialogOpen(true);
+  };
+
+  const handleGeneratePassword = () => {
+    const generated = generateSecurePassword();
+    setPassword(generated);
+    setCopied(false);
+    toast({ title: "Generated temporary password", description: "Click Copy to share it with the new admin." });
+  };
+
+  const handleCopyPassword = async () => {
+    if (!password) return;
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      toast({ title: "Password copied to clipboard" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Failed to copy password", variant: "destructive" });
+    }
+  };
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin-admins"] });
 
@@ -72,6 +123,7 @@ const AdminAdmins = () => {
       setEmail("");
       setPassword("");
       setRole("admin");
+      setCopied(false);
       toast({ title: "Admin account created" });
     },
     onError: (err: Error) => {
@@ -108,7 +160,7 @@ const AdminAdmins = () => {
           </p>
         </div>
         {canManage && (
-          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Button onClick={openAddAdminDialog} className="gap-2">
             <Plus className="w-4 h-4" /> Add Admin
           </Button>
         )}
@@ -186,32 +238,112 @@ const AdminAdmins = () => {
       </Card>
 
       {canManage && (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEmail("");
+              setPassword("");
+              setCopied(false);
+            }
+          }}
+        >
           <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>Add Admin</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <form
+              autoComplete="off"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!createMutation.isPending && email.trim() && password.length >= 8) {
+                  createMutation.mutate();
+                }
+              }}
+              className="space-y-4"
+            >
+              {/* Dummy hidden inputs to absorb browser autofill heuristics */}
+              <input
+                type="text"
+                name="prevent_chrome_autofill_email"
+                style={{ display: "none" }}
+                tabIndex={-1}
+                aria-hidden="true"
+                autoComplete="off"
+              />
+              <input
+                type="password"
+                name="prevent_chrome_autofill_password"
+                style={{ display: "none" }}
+                tabIndex={-1}
+                aria-hidden="true"
+                autoComplete="new-password"
+              />
+
               <div className="space-y-2">
                 <Label htmlFor="new-admin-email">Email</Label>
                 <Input
                   id="new-admin-email"
+                  name="xd_new_admin_email_field"
                   type="email"
+                  autoComplete="off"
+                  data-lpignore="true"
+                  data-form-type="other"
+                  placeholder="name@example.com"
                   value={email}
                   maxLength={255}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="new-admin-password">Initial password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="new-admin-password">Initial password</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs text-primary hover:text-primary gap-1"
+                      onClick={handleGeneratePassword}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Generate
+                    </Button>
+                    {password && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                        onClick={handleCopyPassword}
+                      >
+                        {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copied ? "Copied" : "Copy"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
                 <PasswordInput
                   id="new-admin-password"
+                  name="xd_new_admin_password_field"
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                  data-form-type="other"
+                  placeholder="Type or click Generate"
                   value={password}
                   maxLength={200}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setCopied(false);
+                  }}
                 />
-                <p className="text-xs text-muted-foreground">At least 8 characters. Share this with them securely — they can change it themselves afterward via "Forgot password."</p>
+                <p className="text-xs text-muted-foreground">
+                  At least 8 characters. Share this temporary password with the new admin. They can change it anytime in settings or via "Forgot password."
+                </p>
               </div>
+
               <div className="space-y-2">
                 <Label>Role</Label>
                 <Select value={role} onValueChange={(v) => setRole(v as Role)}>
@@ -225,15 +357,16 @@ const AdminAdmins = () => {
                   </SelectContent>
                 </Select>
               </div>
+
               <Button
+                type="submit"
                 className="w-full"
                 disabled={createMutation.isPending || !email.trim() || password.length < 8}
-                onClick={() => createMutation.mutate()}
               >
                 {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Create admin
               </Button>
-            </div>
+            </form>
           </DialogContent>
         </Dialog>
       )}
