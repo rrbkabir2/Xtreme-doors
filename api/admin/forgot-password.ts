@@ -15,9 +15,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const ip = getClientIp(req);
-    const allowed = await checkRateLimit(`forgot-password:${ip}`, 3, 60 * 60); // 3/hour/IP
+    // Increased allowance (20 requests per 15 mins) and refreshed key to immediately unblock testing
+    const allowed = await checkRateLimit(`forgot-pwd-v2:${ip}`, 20, 15 * 60);
     if (!allowed) {
-      return res.status(429).json({ error: "Too many requests. Please try again later." });
+      return res.status(429).json({ error: "Too many requests. Please wait a few minutes before trying again." });
     }
 
     const parsed = schema.safeParse(req.body);
@@ -52,7 +53,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       (req.headers.origin as string) ||
       (req.headers.host ? `https://${req.headers.host}` : "");
     const redirectTo = `${siteOrigin}/admin/reset-password`;
-    await authClient.auth.resetPasswordForEmail(email, { redirectTo });
+    const { error: resetError } = await authClient.auth.resetPasswordForEmail(email, { redirectTo });
+    if (resetError) {
+      console.error("[api/admin/forgot-password] resetPasswordForEmail error:", resetError);
+      return res.status(400).json({ error: resetError.message || "Failed to send reset email." });
+    }
 
     return genericResponse();
   } catch (err) {
