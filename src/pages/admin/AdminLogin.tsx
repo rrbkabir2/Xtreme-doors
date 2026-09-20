@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { getRedirectAuthClient } from "@/lib/supabaseAuthClient";
 import Navigation from "@/components/Navigation";
@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import PasswordInput from "./PasswordInput";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 
 const AdminLogin = () => {
   const { authenticated, loading, login } = useAdminAuth();
+  const [searchParams] = useSearchParams();
+  const resetSent = searchParams.get("reset") === "sent";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +67,14 @@ const AdminLogin = () => {
             <CardDescription>Xtreme Doors admin panel</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {resetSent && (
+              <div className="p-3 text-xs sm:text-sm rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5">
+                <Mail className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>
+                  A reset link has been sent to your email. Follow the link in your inbox to set your new password, then sign in below.
+                </span>
+              </div>
+            )}
             <Button
               type="button"
               variant="outline"

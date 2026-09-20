@@ -47,7 +47,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!adminRow) return genericResponse();
 
     const authClient = getAuthClient();
-    const redirectTo = `${process.env.PUBLIC_SITE_ORIGIN || ""}/admin/reset-password`;
+    const siteOrigin =
+      process.env.PUBLIC_SITE_ORIGIN ||
+      (req.headers.origin as string) ||
+      (req.headers.host ? `https://${req.headers.host}` : "");
+    const redirectTo = `${siteOrigin}/admin/reset-password`;
     await authClient.auth.resetPasswordForEmail(email, { redirectTo });
 
     return genericResponse();
